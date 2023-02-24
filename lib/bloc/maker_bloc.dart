@@ -95,15 +95,15 @@ class MakerBloc extends Bloc<MakerEvent, MakerState> {
     var id = await EncryptService()
         .setAnswerId(0, datas[currState.qSelectedIndex!].id, false);
     var newAnswer = Answer(id, '', null, null);
-    datas
+    List<Question> telo = datas
         .map((e) => e.id == datas[currState.qSelectedIndex!].id
             ? e.copywith(answers: e.answers + [newAnswer])
             : e)
         .toList();
-    datas[currState.qSelectedIndex!].answers.add(newAnswer);
+    // datas[currState.qSelectedIndex!].answers.add(newAnswer);
     debugPrint('$datas');
     emit(currState.copywith(
-      datas: datas,
+      datas: telo,
       // aSelectedIndex:
       //     currState.aSelectedIndex != null ? currState.aSelectedIndex! + 1 : 0,
     ));
