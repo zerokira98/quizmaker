@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_quill/flutter_quill.dart' as q;
 import 'package:quizmaker/bloc/maker_bloc.dart';
+import 'package:quizmaker/bloc/maker_state.dart';
 import 'package:vsc_quill_delta_to_html/vsc_quill_delta_to_html.dart';
 
 class Preview extends StatefulWidget {
@@ -20,66 +21,16 @@ class _PreviewState extends State<Preview> {
   // String text = "";
   @override
   void initState() {
-    widget.controller.addListener(() {
-      // debugPrint(widget.controller.document.toDelta().toJson().toString());
-      // setState(() {
-      // text = widget.controller.document.toPlainText();
-    });
+    widget.controller.addListener(() {});
     // });
     super.initState();
   }
 
-  // Widget textViewBuilder(
-  //   BuildContext context,
-  //   q.Document document,
-  // ) {
-  //   List<TextSpan> a = document.toDelta().toJson().map((p0) {
-  //     Color color = Colors.black;
-  //     FontWeight weight = FontWeight.normal;
-  //     double fontScale = 1.0;
-  //     if (p0['attributes'] != null) {
-  //       if (p0['attributes']['color'] != null) {
-  //         String hexColor =
-  //             p0['attributes']['color'].toString().replaceAll('#', '0xff');
-  //         color = Color(int.parse(hexColor));
-  //       }
-  //       if (p0['attributes']['bold'] != null) {
-  //         weight = p0['attributes']['bold'] == true
-  //             ? FontWeight.bold
-  //             : FontWeight.normal;
-  //       }
-  //       if (p0['attributes']['size'] != null) {
-  //         switch (p0['attributes']['size']) {
-  //           case 'large':
-  //             fontScale = 1.2;
-  //             break;
-  //           case 'huge':
-  //             fontScale = 1.5;
-  //             break;
-  //           default:
-  //         }
-  //         // fontScale = p0['attributes']['size'] == 'large' ? 18 : 14;
-  //       }
-  //     }
-  //     return TextSpan(
-  //         text: p0['insert'],
-  //         style: TextStyle(
-  //             color: color, fontWeight: weight, fontSize: 14 * fontScale));
-  //   }).toList();
-  //   // for (var ea in document.toDelta().toJson()) {
-  //   //   print(ea);
-  //   // }
-  //   return RichText(
-  //     text: TextSpan(children: a),
-  //   );
-  // }
   String htmlData(String jsonString) {
     if (jsonString.isEmpty) return '';
     List json = jsonDecode(jsonString);
-    print('a$json');
     List<Map<String, dynamic>> yo =
         json.map<Map<String, dynamic>>((e) => e).toList();
-    print('b$yo');
 
     // return '';
     var telo = QuillDeltaToHtmlConverter(
@@ -96,38 +47,85 @@ class _PreviewState extends State<Preview> {
                     return 'padding-$side:${indentSize}em';
                   }),
                 }))));
-    print(telo.convert());
     return telo.convert();
   }
 
   @override
   Widget build(BuildContext context) {
     // print(htmlData);
-    return Center(
-      child: Column(
-        children: [
-          // Text('view $text'),
-          Container(
-              padding: EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(4.0),
-                border:
-                    Border.all(color: Theme.of(context).primaryColor, width: 2),
-              ),
-              child: BlocBuilder<MakerBloc, MakerState>(
-                builder: (context, state) {
-                  if (state is MakerLoaded) {
-                    return Html(
-                        data: htmlData(
-                            state.datas[state.qSelectedIndex!].textJson ?? ''));
-                  }
-                  return Text('not loaded');
-                },
-              )),
-          // Container(
-          //     // color: Colors.red,
-          //     child: textViewBuilder(context, widget.controller.document)),
-        ],
+    return Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        // leading: SizedBox(),
+        title: const Text('Live Preview'),
+      ),
+      body: Center(
+        child: Column(
+          children: [
+            // Text('view $text'),
+            Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(4.0),
+                  border: Border.all(
+                      color: Theme.of(context).primaryColor, width: 2),
+                ),
+                child: BlocBuilder<MakerBloc, MakerState>(
+                  builder: (context, state) {
+                    if (state is MakerLoaded) {
+                      return Html(
+                          data: htmlData(
+                              state.datas[state.qSelectedIndex!].textJson ??
+                                  ''));
+                    }
+                    return const Text('not loaded');
+                  },
+                )),
+            const Padding(padding: EdgeInsets.all(8)),
+            BlocBuilder<MakerBloc, MakerState>(
+              builder: (context, state) {
+                if (state is MakerLoaded) {
+                  return Column(
+                    children: List.generate(
+                        state.datas[state.qSelectedIndex!].answers.length,
+                        (index) => ListTile(
+                              title: Text('$index'),
+                            )),
+                  );
+                }
+                return const SizedBox();
+              },
+            ),
+            const Padding(padding: EdgeInsets.all(8)),
+            Row(
+              children: [
+                Expanded(
+                  child: InkWell(
+                    onTap: () {
+                      BlocProvider.of<MakerBloc>(context).add(AddAnswer());
+                    },
+                    child: Container(
+                      // width: double.infinity,
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(4.0),
+                        border: Border.all(
+                            color: Theme.of(context).primaryColor, width: 2),
+                      ),
+                      child: const Text(
+                        'Tambah Jawaban +',
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            )
+            // Container(
+            //     // color: Colors.red,
+            //     child: textViewBuilder(context, widget.controller.document)),
+          ],
+        ),
       ),
     );
   }

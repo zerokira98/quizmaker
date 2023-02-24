@@ -1,45 +1,75 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:bloc/bloc.dart';
-import 'package:encrypt/encrypt.dart';
-import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:meta/meta.dart';
+import 'package:quizmaker/service/encrypt_service.dart';
+import 'package:quizmaker/service/file_service.dart';
+import 'maker_state.dart';
 
 part 'maker_event.dart';
-part 'maker_state.dart';
 
 class MakerBloc extends Bloc<MakerEvent, MakerState> {
   MakerBloc() : super(MakerInitial()) {
+    on<ReturntoInitial>(_backtoInitialstate);
     on<Initialize>(_initialize);
+    on<InitiateFromFolder>(_initializeFromFolder);
     on<GoToNumber>(_goToNumber);
+    on<SavetoFile>(_savetoFile);
+    on<DeleteSuccess>(_deleteSuccess);
     on<AddQuestion>(_addQuestion);
+    on<DeleteQuestion>(_deleteQuestion);
     on<UpdateQuestion>(_updateQuestion);
+
+    ///--Answer
+    on<AddAnswer>(_addAnswer);
+  }
+  _initializeFromFolder(
+      InitiateFromFolder event, Emitter<MakerState> emit) async {
+    var jsonFile = jsonDecode(await FileService().quizJsonFile(event.folder));
+    emit(MakerLoaded.fromJson(jsonFile));
   }
 
-  _updateQuestion(UpdateQuestion event, Emitter<MakerState> emit) async {
-    var theState = (state as MakerLoaded);
-    var updatedQuestion = theState.datas[theState.qSelectedIndex!]
-        .copywith(event.stringPlain, event.stringJson, null);
-    var selectedId = theState.datas[theState.qSelectedIndex!].id;
-    var newdatas = theState.datas
-        .map((e) => e.id == selectedId ? updatedQuestion : e)
-        .toList();
-    print('here');
-    emit(theState.copywith(datas: newdatas));
+  _savetoFile(SavetoFile event, Emitter<MakerState> emit) async {
+    var bool = await FileService().saveToFile(state as MakerLoaded);
+    emit((state as MakerLoaded).copywith(
+      saveSuccess: bool,
+    ));
+  }
+
+  _deleteSuccess(DeleteSuccess event, Emitter<MakerState> emit) async {
+    emit((state as MakerLoaded).deleteMsg());
+  }
+
+  _backtoInitialstate(ReturntoInitial event, Emitter<MakerState> emit) async {
+    emit(MakerInitial());
+  }
+
+  _deleteQuestion(DeleteQuestion event, Emitter<MakerState> emit) async {
+    var a = (state as MakerLoaded).datas.toList();
+    if (a.length > 1) {
+      a.removeAt(event.index);
+      var newQselectindex = (state as MakerLoaded).qSelectedIndex! > 0
+          ? (state as MakerLoaded).qSelectedIndex! - 1
+          : 0;
+      emit((state as MakerLoaded)
+          .copywith(datas: a, qSelectedIndex: newQselectindex));
+    } else {
+      add(Initialize(title: (state as MakerLoaded).quizTitle));
+    }
   }
 
   _initialize(Initialize event, Emitter<MakerState> emit) async {
-    final title = event.title + '_0';
-    final key = Key.fromUtf8('CBoaDQIQAgceGg8dFAkMDBEOECEZCxgM');
-
-    final encrypter = Encrypter(AES(key));
-    final iv = IV.fromLength(16);
-
-    final encrypted = encrypter.encrypt(title, iv: iv);
-    final decrypted = encrypter.decrypt64(encrypted.base64, iv: iv);
-    var questData = Question(encrypted.base64, [], null, null, null, null);
-    print(encrypted.base64);
-    print(decrypted);
-    emit(MakerLoaded(
-        quizTitle: event.title, qDatas: [questData], qSelectedIndex: 0));
+    var projectDir = await FileService().createNewProjectDir(event.title);
+    final title = '${event.title}_0';
+    var qId = await EncryptService().questionIdfromIndex(title);
+    var questData = Question(id: qId, answers: []);
+    var newState = MakerLoaded(
+        quizTitle: event.title, datas: [questData], qSelectedIndex: 0);
+    var file = File('${projectDir.path}quiz.json');
+    await file.writeAsString(jsonEncode(newState.toJson()));
+    emit(newState);
   }
 
   _goToNumber(GoToNumber event, Emitter<MakerState> emit) async {
@@ -48,21 +78,50 @@ class MakerBloc extends Bloc<MakerEvent, MakerState> {
     }
   }
 
+  _updateQuestion(UpdateQuestion event, Emitter<MakerState> emit) async {
+    var theState = (state as MakerLoaded);
+    var updatedQuestion = theState.datas[theState.qSelectedIndex!]
+        .copywith(text: event.stringPlain, textJson: event.stringJson);
+    var selectedId = theState.datas[theState.qSelectedIndex!].id;
+    var newdatas = theState.datas
+        .map((e) => e.id == selectedId ? updatedQuestion : e)
+        .toList();
+    emit(theState.copywith(datas: newdatas));
+  }
+
+  _addAnswer(AddAnswer event, Emitter<MakerState> emit) async {
+    var currState = (state as MakerLoaded);
+    var datas = currState.datas;
+    var id = await EncryptService()
+        .setAnswerId(0, datas[currState.qSelectedIndex!].id, false);
+    var newAnswer = Answer(id, '', null, null);
+    datas
+        .map((e) => e.id == datas[currState.qSelectedIndex!].id
+            ? e.copywith(answers: e.answers + [newAnswer])
+            : e)
+        .toList();
+    datas[currState.qSelectedIndex!].answers.add(newAnswer);
+    debugPrint('$datas');
+    emit(currState.copywith(
+      datas: datas,
+      // aSelectedIndex:
+      //     currState.aSelectedIndex != null ? currState.aSelectedIndex! + 1 : 0,
+    ));
+  }
+
   _addQuestion(AddQuestion event, Emitter<MakerState> emit) async {
     var theState = (state as MakerLoaded);
     var prevdata = (state as MakerLoaded).datas;
-    final iv = IV.fromLength(16);
-    final key = Key.fromUtf8('CBoaDQIQAgceGg8dFAkMDBEOECEZCxgM');
-    final encrypter = Encrypter(AES(key));
-    final decrypted = encrypter.decrypt64(prevdata.last.id, iv: iv);
-    var idnumber = int.parse(decrypted.substring(decrypted.indexOf('_') + 1));
-    var id = '${theState.quizTitle}_${idnumber + 1}';
-    final encrypted = encrypter.encrypt(id, iv: iv);
-    var newQuestion = Question(encrypted.base64, [], null, null, null, null);
+    var indexfromId =
+        await EncryptService().getQuestionIndexfromId(prevdata.last.id);
+    var id = '${theState.quizTitle}_${indexfromId + 1}';
+    final encrypted = await EncryptService().questionIdfromIndex(id);
+    var newQuestion = Question(id: encrypted, answers: []);
     var newDatas = prevdata + [newQuestion];
-    emit(MakerLoaded(
-        quizTitle: theState.quizTitle,
-        qSelectedIndex: prevdata.length,
-        qDatas: newDatas));
+    // var newState = MakerLoaded(
+    //     quizTitle: theState.quizTitle,
+    //     qSelectedIndex: prevdata.length,
+    //     datas: newDatas);
+    emit(theState.copywith(datas: newDatas));
   }
 }

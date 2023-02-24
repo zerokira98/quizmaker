@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_quill/src/widgets/controller.dart';
+import 'package:flutter_quill/flutter_quill.dart' as q;
 import 'package:quizmaker/bloc/maker_bloc.dart';
+import 'package:quizmaker/bloc/maker_state.dart';
 
 class NavRail extends StatefulWidget {
-  final QuillController controller;
-  NavRail(this.controller, {super.key});
+  final q.QuillController controller;
+  const NavRail(this.controller, {super.key});
 
   @override
   State<NavRail> createState() => _NavRailState();
@@ -46,11 +47,11 @@ class _NavRailState extends State<NavRail> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const Icon(Icons.album_outlined),
-                          Padding(padding: EdgeInsets.all(2)),
+                          const Padding(padding: EdgeInsets.all(2)),
                           Text('$i'),
                         ],
                       ),
-                      label: Container(
+                      label: SizedBox(
                         width: 200,
                         child: Text(
                           '${state.datas[i].text?.replaceAll('\n', ' ')}',
@@ -61,17 +62,17 @@ class _NavRailState extends State<NavRail> {
                 NavigationRailDestination(
                     icon: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.add),
+                      children: const [
+                        Icon(Icons.add),
                         Padding(padding: EdgeInsets.all(2)),
                         // Text('[add new uestion]'),
                       ],
                     ),
-                    label: Text('[add new question]')),
+                    label: const Text('[add new question]')),
               ],
               selectedIndex: state.qSelectedIndex);
         }
-        return SizedBox();
+        return const SizedBox();
       },
     );
   }

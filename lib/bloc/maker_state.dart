@@ -1,41 +1,66 @@
-part of 'maker_bloc.dart';
+import 'package:equatable/equatable.dart';
+import 'package:json_annotation/json_annotation.dart';
 
-@immutable
-abstract class MakerState extends Equatable {}
+part 'maker_state.g.dart';
 
-class MakerInitial extends MakerState {
+abstract class MakerState extends Equatable {
+  const MakerState();
+
   @override
-  // TODO: implement props
   List<Object?> get props => [];
 }
 
+class MakerInitial extends MakerState {
+  @override
+  List<Object?> get props => [];
+}
+
+@JsonSerializable()
 class MakerLoaded extends MakerState {
+  final bool? saveSuccess;
   final String quizTitle;
   final int? qSelectedIndex;
   final int? aSelectedIndex;
   final List<Question> datas;
 
-  MakerLoaded(
+  const MakerLoaded(
       {this.qSelectedIndex,
+      this.saveSuccess,
       this.aSelectedIndex,
       required this.quizTitle,
-      List<Question>? qDatas})
-      : datas = qDatas ?? [];
+      required this.datas});
+  factory MakerLoaded.fromJson(Map<String, dynamic> json) =>
+      _$MakerLoadedFromJson(json);
+
+  Map<String, dynamic> toJson() => _$MakerLoadedToJson(this);
 
   MakerLoaded copywith(
-      {int? qSelectedIndex, int? aSelectedIndex, List<Question>? datas}) {
+      {int? qSelectedIndex,
+      int? aSelectedIndex,
+      List<Question>? datas,
+      bool? saveSuccess}) {
     return MakerLoaded(
         quizTitle: quizTitle,
-        qDatas: datas ?? this.datas,
+        saveSuccess: saveSuccess ?? this.saveSuccess,
+        datas: datas ?? this.datas,
         qSelectedIndex: qSelectedIndex ?? this.qSelectedIndex,
         aSelectedIndex: aSelectedIndex ?? this.aSelectedIndex);
   }
 
+  MakerLoaded deleteMsg() {
+    return MakerLoaded(
+        quizTitle: quizTitle,
+        datas: datas,
+        qSelectedIndex: qSelectedIndex,
+        aSelectedIndex: aSelectedIndex);
+  }
+
   @override
-  // TODO: implement props
-  List<Object?> get props => [quizTitle, qSelectedIndex, aSelectedIndex, datas];
+  List<Object?> get props =>
+      [quizTitle, qSelectedIndex, aSelectedIndex, datas, saveSuccess];
 }
 
+@JsonSerializable()
 class Question extends Equatable {
   final String id;
   final String? text;
@@ -43,47 +68,57 @@ class Question extends Equatable {
   final String? mp3;
   final List<String>? img;
   final List<Answer> answers;
-  Question(this.id, List<Answer>? answers, this.text, this.textJson, this.mp3,
-      this.img)
-      : answers = answers ?? [];
+  const Question(
+      {required this.id,
+      required this.answers,
+      this.text,
+      this.textJson,
+      this.mp3,
+      this.img});
+  factory Question.fromJson(Map<String, dynamic> json) =>
+      _$QuestionFromJson(json);
+
+  Map<String, dynamic> toJson() => _$QuestionToJson(this);
 
   Question copywith(
-    String? text,
-    String? textJson,
-    String? mp3,
-  ) {
+      {String? text, String? textJson, String? mp3, List<Answer>? answers}) {
     return Question(
-      id,
-      answers,
-      text ?? this.text,
-      textJson ?? this.textJson,
-      mp3 ?? this.mp3,
-      img,
-    );
+        id: id,
+        answers: answers ?? this.answers,
+        text: text ?? this.text,
+        textJson: textJson ?? this.textJson,
+        mp3: mp3 ?? this.mp3,
+        img: img);
   }
 
   @override
   String toString() {
-    // TODO: implement toString
     return 'id:$id,text:$text,textJ:$textJson,mp3:$mp3,img:$img,answers:$answers';
   }
 
   @override
-  // TODO: implement props
-  List<Object?> get props => [text, textJson];
+  List<Object?> get props => [text, textJson, answers.length];
 }
 
-class Answer {
+@JsonSerializable()
+class Answer extends Equatable {
   final String id;
   final String? text;
   final String? img;
   final String? mp3;
 
-  Answer(this.id, this.text, this.img, this.mp3);
-  // "text": "isi text jawaban",
-  //         "img": "id.png",
-  //         "id": "hash(pertanyaanId+indexOnCreation+bool)"
-}
+  const Answer(this.id, this.text, this.img, this.mp3);
+  factory Answer.fromJson(Map<String, dynamic> json) => _$AnswerFromJson(json);
 
-// [id:42QKFDqShJH08s5GDvd2uQ==,text:null,mp3:null,img:null,answers:[], 
-// id:42QKFDqShJH08s5HDvd2uQ==,text:null,mp3:null,img:null,answers:[]])
+  Map<String, dynamic> toJson() => _$AnswerToJson(this);
+
+  @override
+  List<Object?> get props => [
+        id,
+        text,
+      ];
+  @override
+  String toString() {
+    return 'id:$id,text:$text,mp3:$mp3,img:$img,';
+  }
+}

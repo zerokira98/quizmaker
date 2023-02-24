@@ -15,11 +15,37 @@ class UpdateQuestion extends MakerEvent {
 }
 
 class AddQuestion extends MakerEvent {
-  // final int number;
   AddQuestion();
+}
+
+class AddAnswer extends MakerEvent {
+  AddAnswer();
+}
+
+class SavetoFile extends MakerEvent {
+  SavetoFile();
+}
+
+class DeleteSuccess extends MakerEvent {
+  DeleteSuccess();
+}
+
+class DeleteQuestion extends MakerEvent {
+  final int index;
+  DeleteQuestion(this.index);
+}
+
+class ReturntoInitial extends MakerEvent {
+  // final int index;
+  ReturntoInitial();
 }
 
 class Initialize extends MakerEvent {
   final String title;
   Initialize({required this.title});
+}
+
+class InitiateFromFolder extends MakerEvent {
+  final String folder;
+  InitiateFromFolder({required this.folder});
 }

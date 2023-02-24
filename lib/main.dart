@@ -1,12 +1,10 @@
-import 'dart:convert';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_quill/flutter_quill.dart' as q;
 import 'package:quizmaker/bloc/maker_bloc.dart';
-import 'package:quizmaker/nav_rail.dart';
-import 'package:quizmaker/preview.dart';
-import 'package:quizmaker/texteditor.dart';
+import 'package:quizmaker/mainapp.dart';
+import 'package:quizmaker/service/file_service.dart';
 
 void main() {
   runApp(BlocProvider(
@@ -15,7 +13,7 @@ void main() {
         themeMode: ThemeMode.dark,
         theme: ThemeData(
             colorSchemeSeed: const Color(0xff6750a4), useMaterial3: true),
-        home: HomePage()),
+        home: const HomePage()),
   ));
 }
 
@@ -28,13 +26,83 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('quizmaker'),
       ),
-      body: Center(
-        child: ElevatedButton(
-            onPressed: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => InitiateNewQuiz()));
-            },
-            child: Text('Create new Quiz')),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            margin: EdgeInsets.symmetric(
+                horizontal: MediaQuery.of(context).size.width / 6),
+            decoration: BoxDecoration(
+                border: Border.all(color: Theme.of(context).primaryColor),
+                borderRadius: BorderRadius.circular(8.0)),
+            // alignment: Alignment.center,
+            height: MediaQuery.of(context).size.height * 0.45,
+            child: FutureBuilder(
+              future: FileService().getListFoldersProject(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  // print('hei');
+                  // print(snapshot.data);
+                  return ListView.builder(
+                    itemBuilder: (context, i) {
+                      return InkWell(
+                        onTap: () {
+                          // BlocProvider.of<MakerBloc>(context).add(event)
+                          Navigator.push(context, MaterialPageRoute(
+                            builder: (context) {
+                              BlocProvider.of<MakerBloc>(context).add(
+                                  InitiateFromFolder(
+                                      folder: snapshot.data![i]));
+                              return const MainApp();
+                            },
+                          ));
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Card(
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                child: Text(
+                                  '${snapshot.data![i]}',
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    itemCount: snapshot.data!.length,
+                  );
+                }
+                return const SizedBox();
+              },
+            ),
+          ),
+          const Text('List of quiz project'),
+          const Padding(padding: EdgeInsets.all(8)),
+          Center(
+            child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => InitiateNewQuiz()));
+                },
+                child: const Text('Create new Quiz')),
+          ),
+          const Padding(padding: EdgeInsets.all(8)),
+          Center(
+            child: ElevatedButton(
+                onPressed: () {
+                  FilePicker.platform.pickFiles(
+                      type: FileType.custom, allowedExtensions: ['qmzip']);
+                },
+                child: const Text('Import Created Quiz')),
+          ),
+        ],
       ),
     );
   }
@@ -43,12 +111,21 @@ class HomePage extends StatelessWidget {
 class InitiateNewQuiz extends StatelessWidget {
   InitiateNewQuiz({super.key});
   final TextEditingController titleController = TextEditingController();
+  finishCallback(BuildContext context) {
+    Navigator.pushReplacement(context, MaterialPageRoute(
+      builder: (context) {
+        BlocProvider.of<MakerBloc>(context)
+            .add(Initialize(title: titleController.text));
+        return const MainApp();
+      },
+    ));
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Buat Quiz Baru'),
+        title: const Text('Buat Quiz Baru'),
       ),
       body: Center(
         child: Container(
@@ -62,80 +139,31 @@ class InitiateNewQuiz extends StatelessWidget {
                 children: [
                   Expanded(
                       child: TextField(
+                    onChanged: (value) {
+                      if (value.length == 2) {
+                        titleController.text =
+                            value[0].toUpperCase() + value[1];
+                        titleController.selection = TextSelection.collapsed(
+                            offset: titleController.text.length);
+                      }
+                    },
+                    onSubmitted: (value) {
+                      finishCallback(context);
+                    },
                     controller: titleController,
-                    decoration: InputDecoration(label: Text('Judul Quiz')),
+                    decoration:
+                        const InputDecoration(label: Text('Judul Quiz')),
                   )),
                 ],
               ),
-              Padding(padding: EdgeInsets.all(4)),
+              const Padding(padding: EdgeInsets.all(4)),
               ElevatedButton(
                   onPressed: () {
-                    Navigator.pushReplacement(context, MaterialPageRoute(
-                      builder: (context) {
-                        BlocProvider.of<MakerBloc>(context)
-                            .add(Initialize(title: titleController.text));
-                        return MyApp();
-                      },
-                    ));
+                    finishCallback(context);
                   },
-                  child: Text('Buat'))
+                  child: const Text('Buat'))
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class MyApp extends StatefulWidget {
-  MyApp({super.key});
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  final q.QuillController _controller = q.QuillController.basic();
-  @override
-  void initState() {
-    _controller.addListener(textListener);
-    super.initState();
-  }
-
-  textListener() {
-    var plaintext = _controller.document.toPlainText();
-    var jsonString = jsonEncode(_controller.document.toDelta().toJson());
-    // if (a.isNotEmpty)
-    BlocProvider.of<MakerBloc>(context)
-        .add(UpdateQuestion(plaintext, jsonString));
-    // print('$plaintext\n$jsonString');
-    // _controller.document = q.Document.fromJson(a);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: BlocBuilder<MakerBloc, MakerState>(
-          builder: (context, state) {
-            // print('$state');
-            if (state is MakerLoaded) {
-              // print(state.datas.toString());
-              return Text('${state.quizTitle}');
-            }
-            return Text('null');
-          },
-        ),
-      ),
-      body: Container(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          children: [
-            NavRail(_controller),
-            Expanded(flex: 1, child: TextEditor(_controller)),
-            const Padding(padding: EdgeInsets.all(4)),
-            Expanded(flex: 1, child: Preview(_controller)),
-          ],
         ),
       ),
     );
