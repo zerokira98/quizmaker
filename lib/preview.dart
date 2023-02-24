@@ -57,40 +57,110 @@ class _PreviewState extends State<Preview> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         // leading: SizedBox(),
-        title: const Text('Live Preview'),
+        title: const Text('kinda Live Preview'),
       ),
       body: Center(
         child: Column(
           children: [
             // Text('view $text'),
-            Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(4.0),
-                  border: Border.all(
-                      color: Theme.of(context).primaryColor, width: 2),
-                ),
-                child: BlocBuilder<MakerBloc, MakerState>(
-                  builder: (context, state) {
-                    if (state is MakerLoaded) {
-                      return Html(
-                          data: htmlData(
-                              state.datas[state.qSelectedIndex!].textJson ??
-                                  ''));
-                    }
-                    return const Text('not loaded');
-                  },
-                )),
-            const Padding(padding: EdgeInsets.all(8)),
             BlocBuilder<MakerBloc, MakerState>(
               builder: (context, state) {
                 if (state is MakerLoaded) {
-                  return Column(
-                    children: List.generate(
-                        state.datas[state.qSelectedIndex!].answers.length,
-                        (index) => ListTile(
-                              title: Text('$index'),
-                            )),
+                  return InkWell(
+                    onTap: () {
+                      BlocProvider.of<MakerBloc>(context)
+                          .add(GoToNumber(state.qSelectedIndex!));
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(4.0),
+                        border: Border.all(
+                            color: state.aSelectedIndex == null
+                                ? Theme.of(context).primaryColor
+                                : Colors.grey,
+                            width: 2),
+                      ),
+                      child: Html(
+                          data: htmlData(
+                              state.datas[state.qSelectedIndex!].textJson ??
+                                  '')),
+                    ),
+                  );
+                }
+                return const Text('not loaded');
+              },
+            ),
+            const Padding(padding: EdgeInsets.all(16)),
+            BlocBuilder<MakerBloc, MakerState>(
+              builder: (context, state) {
+                if (state is MakerLoaded) {
+                  return Row(
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          children: List.generate(
+                              state.datas[state.qSelectedIndex!].answers.length,
+                              (index) => Row(
+                                    children: [
+                                      Expanded(
+                                        child: InkWell(
+                                          onTap: () {
+                                            BlocProvider.of<MakerBloc>(context)
+                                                .add(SelectAnswer(index));
+                                          },
+                                          child: Container(
+                                            padding: const EdgeInsets.all(8),
+                                            margin: const EdgeInsets.symmetric(
+                                                vertical: 6),
+                                            decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                                border: Border.all(
+                                                    width: state.aSelectedIndex ==
+                                                            index
+                                                        ? 2
+                                                        : 1,
+                                                    color:
+                                                        state.aSelectedIndex ==
+                                                                index
+                                                            ? Theme.of(context)
+                                                                .primaryColor
+                                                            : Colors.grey)),
+                                            child: Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text('$index.'),
+                                                const Padding(
+                                                    padding: EdgeInsets.all(4)),
+                                                Expanded(
+                                                    child: Text(
+                                                  state
+                                                      .datas[
+                                                          state.qSelectedIndex!]
+                                                      .answers[index]
+                                                      .text!
+                                                      .trim(),
+                                                  // maxLines: 1,
+                                                )),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      InkWell(
+                                          onTap: () {},
+                                          child: const Padding(
+                                            padding: EdgeInsets.all(8.0),
+                                            child: Icon(Icons.delete_outline),
+                                          ))
+                                    ],
+                                  )),
+                        ),
+                      ),
+                    ],
                   );
                 }
                 return const SizedBox();

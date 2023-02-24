@@ -1,9 +1,12 @@
+///====BLOC HELLS====
+///
+///
+
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:bloc/bloc.dart';
 import 'package:flutter/foundation.dart';
-import 'package:meta/meta.dart';
 import 'package:quizmaker/service/encrypt_service.dart';
 import 'package:quizmaker/service/file_service.dart';
 import 'maker_state.dart';
@@ -24,11 +27,14 @@ class MakerBloc extends Bloc<MakerEvent, MakerState> {
 
     ///--Answer
     on<AddAnswer>(_addAnswer);
+    on<SelectAnswer>(_selectAnswer);
   }
   _initializeFromFolder(
       InitiateFromFolder event, Emitter<MakerState> emit) async {
     var jsonFile = jsonDecode(await FileService().quizJsonFile(event.folder));
-    emit(MakerLoaded.fromJson(jsonFile));
+    var decodedState = MakerLoaded.fromJson(jsonFile);
+    var newState = decodedState.gotoQuestion(decodedState.qSelectedIndex!);
+    emit(newState);
   }
 
   _savetoFile(SavetoFile event, Emitter<MakerState> emit) async {
@@ -64,7 +70,7 @@ class MakerBloc extends Bloc<MakerEvent, MakerState> {
     var projectDir = await FileService().createNewProjectDir(event.title);
     final title = '${event.title}_0';
     var qId = await EncryptService().questionIdfromIndex(title);
-    var questData = Question(id: qId, answers: []);
+    var questData = Question(id: qId, answers: const []);
     var newState = MakerLoaded(
         quizTitle: event.title, datas: [questData], qSelectedIndex: 0);
     var file = File('${projectDir.path}quiz.json');
@@ -72,28 +78,55 @@ class MakerBloc extends Bloc<MakerEvent, MakerState> {
     emit(newState);
   }
 
+  _selectAnswer(SelectAnswer event, Emitter<MakerState> emit) async {
+    if (state is MakerLoaded) {
+      emit((state as MakerLoaded).copywith(aSelectedIndex: event.index));
+    }
+  }
+
   _goToNumber(GoToNumber event, Emitter<MakerState> emit) async {
     if (state is MakerLoaded) {
-      emit((state as MakerLoaded).copywith(qSelectedIndex: event.number));
+      emit((state as MakerLoaded).gotoQuestion(event.number));
     }
   }
 
   _updateQuestion(UpdateQuestion event, Emitter<MakerState> emit) async {
     var theState = (state as MakerLoaded);
-    var updatedQuestion = theState.datas[theState.qSelectedIndex!]
-        .copywith(text: event.stringPlain, textJson: event.stringJson);
     var selectedId = theState.datas[theState.qSelectedIndex!].id;
-    var newdatas = theState.datas
-        .map((e) => e.id == selectedId ? updatedQuestion : e)
-        .toList();
-    emit(theState.copywith(datas: newdatas));
+    if (theState.aSelectedIndex == null) {
+      var updatedQuestion = theState.datas[theState.qSelectedIndex!]
+          .copywith(text: event.stringPlain, textJson: event.stringJson);
+      var newdatas = theState.datas
+          .map((e) => e.id == selectedId ? updatedQuestion : e)
+          .toList();
+      emit(theState.copywith(datas: newdatas));
+    } else {
+      debugPrint('here');
+      var selectedAnswerId = theState
+          .datas[theState.qSelectedIndex!].answers[theState.aSelectedIndex!].id;
+      List<Answer> newAnswers = theState.datas[theState.qSelectedIndex!].answers
+          .map((e) => e.id == selectedAnswerId
+              ? e.copywith(text: event.stringPlain)
+              : e)
+          .toList();
+      var updatedQuestion = theState.datas[theState.qSelectedIndex!]
+          .copywith(answers: newAnswers);
+      var newdatas = theState.datas
+          .map((e) => e.id == selectedId ? updatedQuestion : e)
+          .toList();
+      emit(theState.copywith(datas: newdatas));
+    }
   }
 
   _addAnswer(AddAnswer event, Emitter<MakerState> emit) async {
     var currState = (state as MakerLoaded);
     var datas = currState.datas;
+    var index = 0;
+    if (datas[currState.qSelectedIndex!].answers.isNotEmpty) {
+      index = datas[currState.qSelectedIndex!].answers.length;
+    }
     var id = await EncryptService()
-        .setAnswerId(0, datas[currState.qSelectedIndex!].id, false);
+        .setAnswerId(index, datas[currState.qSelectedIndex!].id, false);
     var newAnswer = Answer(id, '', null, null);
     List<Question> telo = datas
         .map((e) => e.id == datas[currState.qSelectedIndex!].id
@@ -101,11 +134,10 @@ class MakerBloc extends Bloc<MakerEvent, MakerState> {
             : e)
         .toList();
     // datas[currState.qSelectedIndex!].answers.add(newAnswer);
-    debugPrint('$datas');
+    // debugPrint('${currState.aSelectedIndex}');
     emit(currState.copywith(
       datas: telo,
-      // aSelectedIndex:
-      //     currState.aSelectedIndex != null ? currState.aSelectedIndex! + 1 : 0,
+      aSelectedIndex: index,
     ));
   }
 
@@ -116,7 +148,7 @@ class MakerBloc extends Bloc<MakerEvent, MakerState> {
         await EncryptService().getQuestionIndexfromId(prevdata.last.id);
     var id = '${theState.quizTitle}_${indexfromId + 1}';
     final encrypted = await EncryptService().questionIdfromIndex(id);
-    var newQuestion = Question(id: encrypted, answers: []);
+    var newQuestion = Question(id: encrypted, answers: const []);
     var newDatas = prevdata + [newQuestion];
     // var newState = MakerLoaded(
     //     quizTitle: theState.quizTitle,

@@ -67,29 +67,56 @@ class _TextEditorState extends State<TextEditor> {
                   return true;
                 }
               }
-              if (prev is MakerLoaded) {
-                return (prev).qSelectedIndex !=
-                    (curr as MakerLoaded).qSelectedIndex;
+              if (prev is MakerLoaded && curr is MakerLoaded) {
+                if (prev.aSelectedIndex != null && curr.aSelectedIndex == null) {
+                  return true;
+                }
+                return (prev).qSelectedIndex != curr.qSelectedIndex;
               }
               return false;
             },
             listener: (context, state) {
               if (state is MakerLoaded) {
-                String a = state.datas[state.qSelectedIndex!].textJson ??
-                    '[{"insert":"\\n"}]';
                 // print(a);
-                try {
-                  var json = jsonDecode(a);
-                  widget.controller.document = q.Document.fromJson(json);
-                  widget.controller.moveCursorToEnd();
-                } catch (e) {
-                  debugPrint('error$e');
-                }
+                if (state.aSelectedIndex == null) {
+                  String a = state.datas[state.qSelectedIndex!].textJson ??
+                      '[{"insert":"\\n"}]';
+                  try {
+                    var json = jsonDecode(a);
+                    widget.controller.document = q.Document.fromJson(json);
+                    widget.controller.moveCursorToEnd();
+                  } catch (e) {
+                    debugPrint('error$e');
+                  }
+                } else {}
               }
             },
-            child: q.QuillEditor.basic(
-              controller: widget.controller,
-              readOnly: false, // true for view only mode
+            child: BlocListener<MakerBloc, MakerState>(
+              listenWhen: (prev, curr) {
+                if (prev is MakerLoaded && curr is MakerLoaded) {
+                  if (curr.aSelectedIndex == null) {
+                    return false;
+                  }
+                  return prev.aSelectedIndex != curr.aSelectedIndex;
+                }
+                return false;
+              },
+              listener: (context, state) {
+                if (state is MakerLoaded) {
+                  String a = state.datas[state.qSelectedIndex!]
+                          .answers[state.aSelectedIndex!].text ??
+                      '';
+
+                  widget.controller.document = q.Document.fromJson([
+                    {"insert": "${a.trim()}\n"}
+                  ]);
+                  widget.controller.moveCursorToEnd();
+                }
+              },
+              child: q.QuillEditor.basic(
+                controller: widget.controller,
+                readOnly: false, // true for view only mode
+              ),
             ),
           ))
         ]));

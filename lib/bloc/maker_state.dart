@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+// ignore: depend_on_referenced_packages
 import 'package:json_annotation/json_annotation.dart';
 
 part 'maker_state.g.dart';
@@ -45,6 +46,14 @@ class MakerLoaded extends MakerState {
         datas: datas ?? this.datas,
         qSelectedIndex: qSelectedIndex ?? this.qSelectedIndex,
         aSelectedIndex: aSelectedIndex ?? this.aSelectedIndex);
+  }
+
+  MakerLoaded gotoQuestion(int qSelectedIndex) {
+    return MakerLoaded(
+      quizTitle: quizTitle,
+      datas: datas,
+      qSelectedIndex: qSelectedIndex,
+    );
   }
 
   MakerLoaded deleteMsg() {
@@ -97,7 +106,7 @@ class Question extends Equatable {
   }
 
   @override
-  List<Object?> get props => [text, textJson, answers.length];
+  List<Object?> get props => [text, textJson, answers];
 }
 
 @JsonSerializable()
@@ -111,6 +120,10 @@ class Answer extends Equatable {
   factory Answer.fromJson(Map<String, dynamic> json) => _$AnswerFromJson(json);
 
   Map<String, dynamic> toJson() => _$AnswerToJson(this);
+
+  Answer copywith({String? text, String? img, String? mp3}) {
+    return Answer(id, text ?? this.text, img ?? this.img, mp3 ?? this.img);
+  }
 
   @override
   List<Object?> get props => [

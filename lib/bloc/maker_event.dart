@@ -22,6 +22,11 @@ class AddAnswer extends MakerEvent {
   AddAnswer();
 }
 
+class SelectAnswer extends MakerEvent {
+  final int index;
+  SelectAnswer(this.index);
+}
+
 class SavetoFile extends MakerEvent {
   SavetoFile();
 }
