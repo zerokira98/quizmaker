@@ -23,16 +23,32 @@ class _TextEditorState extends State<TextEditor> {
         child: Column(children: [
           Row(
             children: [
-              DropdownButton(
-                items: const [
-                  DropdownMenuItem(value: 0, child: Text('Question')),
-                  DropdownMenuItem(value: 1, child: Text('Answer no1')),
-                  DropdownMenuItem(value: 2, child: Text('Answer no2')),
-                  DropdownMenuItem(value: 3, child: Text('Answer no3')),
-                ],
-                value: 0,
-                onChanged: (value) {},
+              BlocBuilder<MakerBloc, MakerState>(
+                builder: (context, state) {
+                  if (state is MakerLoaded) {
+                    String content = state.aSelectedIndex != null
+                        ? 'Answer ${state.aSelectedIndex}'
+                        : 'Question';
+                    return Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(content),
+                      ),
+                    );
+                  }
+                  return Container();
+                },
               ),
+              // DropdownButton(
+              //   items: const [
+              //     DropdownMenuItem(value: 0, child: Text('Question')),
+              //     DropdownMenuItem(value: 1, child: Text('Answer no1')),
+              //     DropdownMenuItem(value: 2, child: Text('Answer no2')),
+              //     DropdownMenuItem(value: 3, child: Text('Answer no3')),
+              //   ],
+              //   value: 0,
+              //   onChanged: (value) {},
+              // ),
               Expanded(child: Container()),
               ElevatedButton.icon(
                   onPressed: () {
@@ -68,7 +84,8 @@ class _TextEditorState extends State<TextEditor> {
                 }
               }
               if (prev is MakerLoaded && curr is MakerLoaded) {
-                if (prev.aSelectedIndex != null && curr.aSelectedIndex == null) {
+                if (prev.aSelectedIndex != null &&
+                    curr.aSelectedIndex == null) {
                   return true;
                 }
                 return (prev).qSelectedIndex != curr.qSelectedIndex;

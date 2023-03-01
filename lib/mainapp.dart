@@ -27,7 +27,6 @@ class _MainAppState extends State<MainApp> {
   textListener() {
     var plaintext = _controller.document.toPlainText();
     var jsonString = jsonEncode(_controller.document.toDelta().toJson());
-
     BlocProvider.of<MakerBloc>(context)
         .add(UpdateQuestion(plaintext, jsonString));
   }
@@ -88,17 +87,30 @@ class _MainAppState extends State<MainApp> {
             ),
           ),
         ),
-        body: Container(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            children: [
-              NavRail(_controller),
-              Expanded(flex: 1, child: TextEditor(_controller)),
-              const Padding(padding: EdgeInsets.all(14)),
-              Expanded(flex: 1, child: Preview(_controller)),
-              const Padding(padding: EdgeInsets.all(14)),
-            ],
-          ),
+        body: BlocBuilder<MakerBloc, MakerState>(
+          builder: (context, state) {
+            if (state is MakerLoaded) {
+              return Container(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    NavRail(_controller),
+                    Expanded(flex: 1, child: TextEditor(_controller)),
+                    const Padding(padding: EdgeInsets.all(14)),
+                    Expanded(flex: 1, child: Preview(_controller)),
+                    const Padding(padding: EdgeInsets.all(14)),
+                  ],
+                ),
+              );
+            }
+            if (state is MakerError)
+              return Center(
+                child: Text(state.msg),
+              );
+            return Center(
+              child: Text('null'),
+            );
+          },
         ),
       ),
     );

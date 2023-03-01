@@ -22,6 +22,16 @@ class AddAnswer extends MakerEvent {
   AddAnswer();
 }
 
+class SetRightAnswer extends MakerEvent {
+  final int index;
+  SetRightAnswer({required this.index});
+}
+
+class DeleteAnswer extends MakerEvent {
+  final int index;
+  DeleteAnswer({required this.index});
+}
+
 class SelectAnswer extends MakerEvent {
   final int index;
   SelectAnswer(this.index);

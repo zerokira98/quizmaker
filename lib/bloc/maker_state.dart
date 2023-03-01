@@ -16,6 +16,13 @@ class MakerInitial extends MakerState {
   List<Object?> get props => [];
 }
 
+class MakerError extends MakerState {
+  String msg;
+  MakerError({required this.msg});
+  @override
+  List<Object?> get props => [];
+}
+
 @JsonSerializable()
 class MakerLoaded extends MakerState {
   final bool? saveSuccess;
@@ -121,8 +128,9 @@ class Answer extends Equatable {
 
   Map<String, dynamic> toJson() => _$AnswerToJson(this);
 
-  Answer copywith({String? text, String? img, String? mp3}) {
-    return Answer(id, text ?? this.text, img ?? this.img, mp3 ?? this.img);
+  Answer copywith({String? id, String? text, String? img, String? mp3}) {
+    return Answer(
+        id ?? this.id, text ?? this.text, img ?? this.img, mp3 ?? this.img);
   }
 
   @override

@@ -6,6 +6,7 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_quill/flutter_quill.dart' as q;
 import 'package:quizmaker/bloc/maker_bloc.dart';
 import 'package:quizmaker/bloc/maker_state.dart';
+import 'package:quizmaker/service/encrypt_service.dart';
 import 'package:vsc_quill_delta_to_html/vsc_quill_delta_to_html.dart';
 
 class Preview extends StatefulWidget {
@@ -104,6 +105,22 @@ class _PreviewState extends State<Preview> {
                               state.datas[state.qSelectedIndex!].answers.length,
                               (index) => Row(
                                     children: [
+                                      IconButton(
+                                          onPressed: () {
+                                            BlocProvider.of<MakerBloc>(context)
+                                                .add(SetRightAnswer(
+                                                    index: index));
+                                          },
+                                          icon: Icon(EncryptService()
+                                                  .getAnswerBool(state
+                                                      .datas[
+                                                          state.qSelectedIndex!]
+                                                      .answers[index]
+                                                      .id)
+                                              ? Icons.radio_button_on_outlined
+                                              : Icons
+                                                  .radio_button_off_outlined)),
+                                      Padding(padding: EdgeInsets.all(4)),
                                       Expanded(
                                         child: InkWell(
                                           onTap: () {
@@ -151,7 +168,11 @@ class _PreviewState extends State<Preview> {
                                         ),
                                       ),
                                       InkWell(
-                                          onTap: () {},
+                                          onTap: () {
+                                            BlocProvider.of<MakerBloc>(context)
+                                                .add(
+                                                    DeleteAnswer(index: index));
+                                          },
                                           child: const Padding(
                                             padding: EdgeInsets.all(8.0),
                                             child: Icon(Icons.delete_outline),

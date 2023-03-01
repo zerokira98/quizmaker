@@ -4,7 +4,7 @@ class EncryptService {
   final String privatekey = 'CBoaDQIQAgceGg8dFAkMDBEOECEZCxgM';
   EncryptService();
 
-  Future<bool> getAnswerBool(String id) async {
+  bool getAnswerBool(String id) {
     final key = Key.fromUtf8(privatekey);
     final encrypter = Encrypter(AES(key));
     final iv = IV.fromLength(16);
@@ -15,7 +15,7 @@ class EncryptService {
     return bools;
   }
 
-  Future<int> getAnswerIndex(String id) async {
+  int getAnswerIndex(String id) {
     final key = Key.fromUtf8(privatekey);
     final encrypter = Encrypter(AES(key));
     final iv = IV.fromLength(16);
@@ -26,7 +26,7 @@ class EncryptService {
     return index;
   }
 
-  Future<String> setAnswerId(int index, String qId, bool istheAnswer) async {
+  String setAnswerId(int index, String qId, bool istheAnswer) {
     String combined = '${qId}_$index#$istheAnswer';
     final key = Key.fromUtf8(privatekey);
     final encrypter = Encrypter(AES(key));

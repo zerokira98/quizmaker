@@ -1,4 +1,3 @@
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,8 +16,15 @@ void main() {
   ));
 }
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  Future<List> foldersProject = FileService().getListFoldersProject();
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +36,26 @@ class HomePage extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
+            margin: EdgeInsets.symmetric(
+                horizontal: (MediaQuery.of(context).size.width / 6) + 8),
+            child: Row(
+              children: [
+                Text(
+                  'Folders : ',
+                  textScaleFactor: 1.2,
+                ),
+                Expanded(child: Container()),
+                IconButton(
+                    onPressed: () {
+                      setState(() {
+                        foldersProject = FileService().getListFoldersProject();
+                      });
+                    },
+                    icon: Icon(Icons.refresh))
+              ],
+            ),
+          ),
+          Container(
             padding: const EdgeInsets.all(8),
             margin: EdgeInsets.symmetric(
                 horizontal: MediaQuery.of(context).size.width / 6),
@@ -39,7 +65,7 @@ class HomePage extends StatelessWidget {
             // alignment: Alignment.center,
             height: MediaQuery.of(context).size.height * 0.45,
             child: FutureBuilder(
-              future: FileService().getListFoldersProject(),
+              future: foldersProject,
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   // print('hei');
@@ -59,8 +85,9 @@ class HomePage extends StatelessWidget {
                           ));
                         },
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.start,
                           children: [
+                            Text(i.toString()),
                             Card(
                               child: Container(
                                 padding: const EdgeInsets.all(8),
@@ -70,6 +97,7 @@ class HomePage extends StatelessWidget {
                                 ),
                               ),
                             ),
+                            Text('Last Modified:')
                           ],
                         ),
                       );
