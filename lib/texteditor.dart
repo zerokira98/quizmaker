@@ -16,6 +16,25 @@ class TextEditor extends StatefulWidget {
 
 class _TextEditorState extends State<TextEditor> {
   @override
+  void initState() {
+    var state = BlocProvider.of<MakerBloc>(context).state;
+    if (state is MakerLoaded) {
+      if (state.aSelectedIndex == null) {
+        String a =
+            state.datas[state.qSelectedIndex!].textJson ?? '[{"insert":"\\n"}]';
+        try {
+          var json = jsonDecode(a);
+          widget.controller.document = q.Document.fromJson(json);
+          widget.controller.moveCursorToEnd();
+        } catch (e) {
+          debugPrint('error$e');
+        }
+      }
+    }
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
         padding: const EdgeInsets.all(8),

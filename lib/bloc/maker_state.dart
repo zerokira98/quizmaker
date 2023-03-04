@@ -17,8 +17,8 @@ class MakerInitial extends MakerState {
 }
 
 class MakerError extends MakerState {
-  String msg;
-  MakerError({required this.msg});
+  final String msg;
+  const MakerError({required this.msg});
   @override
   List<Object?> get props => [];
 }

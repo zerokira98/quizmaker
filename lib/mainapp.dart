@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -39,10 +40,38 @@ class _MainAppState extends State<MainApp> {
         return Future.value(true);
       },
       child: Scaffold(
+        endDrawer: Drawer(
+          width: MediaQuery.of(context).size.width * 0.95,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 14.0, right: 14),
+            child: Preview(_controller),
+          ),
+        ),
         appBar: AppBar(
           actions: [
             ElevatedButton.icon(
-                onPressed: () {},
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return Dialog.fullscreen(
+                        child: Column(
+                          children: [
+                            const Text('Settings'),
+                            ElevatedButton(
+                                onPressed: () {},
+                                child: const Text('Export QuizData')),
+                            ElevatedButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                child: const Text('Close'))
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                },
                 icon: const Icon(Icons.settings),
                 label: const Text('Settings')),
             const Padding(padding: EdgeInsets.all(8)),
@@ -96,18 +125,32 @@ class _MainAppState extends State<MainApp> {
                   children: [
                     NavRail(_controller),
                     Expanded(flex: 1, child: TextEditor(_controller)),
-                    const Padding(padding: EdgeInsets.all(14)),
-                    Expanded(flex: 1, child: Preview(_controller)),
-                    const Padding(padding: EdgeInsets.all(14)),
+                    // const Padding(padding: EdgeInsets.all(14)),
+                    Platform.isWindows
+                        ? Expanded(
+                            flex: 1,
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.only(left: 14.0, right: 14),
+                              child: Preview(_controller),
+                            ))
+                        : SizedBox(),
+                    // const Padding(padding: EdgeInsets.all(14)),
                   ],
                 ),
               );
             }
-            if (state is MakerError)
+            if (state is MakerError) {
               return Center(
                 child: Text(state.msg),
               );
-            return Center(
+            }
+            if (state is MakerInitial) {
+              return const Center(
+                child: Text('Initializing'),
+              );
+            }
+            return const Center(
               child: Text('null'),
             );
           },

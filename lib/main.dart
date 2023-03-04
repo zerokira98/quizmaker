@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -32,105 +34,122 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: const Text('quizmaker'),
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            margin: EdgeInsets.symmetric(
-                horizontal: (MediaQuery.of(context).size.width / 6) + 8),
-            child: Row(
-              children: [
-                Text(
-                  'Folders : ',
-                  textScaleFactor: 1.2,
-                ),
-                Expanded(child: Container()),
-                IconButton(
-                    onPressed: () {
-                      setState(() {
-                        foldersProject = FileService().getListFoldersProject();
-                      });
-                    },
-                    icon: Icon(Icons.refresh))
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(8),
-            margin: EdgeInsets.symmetric(
-                horizontal: MediaQuery.of(context).size.width / 6),
-            decoration: BoxDecoration(
-                border: Border.all(color: Theme.of(context).primaryColor),
-                borderRadius: BorderRadius.circular(8.0)),
-            // alignment: Alignment.center,
-            height: MediaQuery.of(context).size.height * 0.45,
-            child: FutureBuilder(
-              future: foldersProject,
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  // print('hei');
-                  // print(snapshot.data);
-                  return ListView.builder(
-                    itemBuilder: (context, i) {
-                      return InkWell(
-                        onTap: () {
-                          // BlocProvider.of<MakerBloc>(context).add(event)
-                          Navigator.push(context, MaterialPageRoute(
-                            builder: (context) {
-                              BlocProvider.of<MakerBloc>(context).add(
-                                  InitiateFromFolder(
-                                      folder: snapshot.data![i]));
-                              return const MainApp();
-                            },
-                          ));
+      body: SingleChildScrollView(
+        child: Container(
+          height: MediaQuery.of(context).size.height - 64,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                margin: EdgeInsets.symmetric(
+                    horizontal: (MediaQuery.of(context).size.width / 6) + 8),
+                child: Row(
+                  children: [
+                    const Text(
+                      'Folders : ',
+                      textScaleFactor: 1.2,
+                    ),
+                    Expanded(child: Container()),
+                    IconButton(
+                        onPressed: () {
+                          setState(() {
+                            foldersProject =
+                                FileService().getListFoldersProject();
+                          });
                         },
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Text(i.toString()),
-                            Card(
-                              child: Container(
-                                padding: const EdgeInsets.all(8),
-                                child: Text(
-                                  '${snapshot.data![i]}',
-                                  textAlign: TextAlign.center,
+                        icon: const Icon(Icons.refresh))
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(8),
+                margin: EdgeInsets.symmetric(
+                    horizontal: MediaQuery.of(context).size.width /
+                        (Platform.isWindows ? 6 : 12)),
+                decoration: BoxDecoration(
+                    border: Border.all(color: Theme.of(context).primaryColor),
+                    borderRadius: BorderRadius.circular(8.0)),
+                // alignment: Alignment.center,
+                height: MediaQuery.of(context).size.height * 0.45,
+                child: FutureBuilder(
+                  future: foldersProject,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      // print('hei');
+                      // print(snapshot.data);
+                      if (snapshot.data!.isEmpty) {
+                        return Center(child: Text('Empty'));
+                      }
+                      return ListView.builder(
+                        itemBuilder: (context, i) {
+                          return InkWell(
+                            onTap: () {
+                              // BlocProvider.of<MakerBloc>(context).add(event)
+                              Navigator.push(context, MaterialPageRoute(
+                                builder: (context) {
+                                  BlocProvider.of<MakerBloc>(context).add(
+                                      InitiateFromFolder(
+                                          folder: snapshot.data![i]
+                                              ["basename"]));
+                                  return const MainApp();
+                                },
+                              ));
+                            },
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Text(i.toString() + '.'),
+                                Expanded(
+                                  flex: 2,
+                                  child: Card(
+                                    child: Container(
+                                      padding: const EdgeInsets.all(8),
+                                      child: Text(
+                                        '${snapshot.data![i]["basename"]}',
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                              ),
+                                Flexible(
+                                  child: Text(
+                                      'Last Modified : ${snapshot.data![i]["last_modified"]}'),
+                                ),
+                              ],
                             ),
-                            Text('Last Modified:')
-                          ],
-                        ),
+                          );
+                        },
+                        itemCount: snapshot.data!.length,
                       );
+                    }
+                    return const SizedBox();
+                  },
+                ),
+              ),
+              const Text('List of quiz project'),
+              const Padding(padding: EdgeInsets.all(8)),
+              Center(
+                child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => InitiateNewQuiz()));
                     },
-                    itemCount: snapshot.data!.length,
-                  );
-                }
-                return const SizedBox();
-              },
-            ),
+                    child: const Text('Create new Quiz')),
+              ),
+              const Padding(padding: EdgeInsets.all(8)),
+              Center(
+                child: ElevatedButton(
+                    onPressed: () {
+                      FilePicker.platform.pickFiles(
+                          type: FileType.custom, allowedExtensions: ['qmzip']);
+                    },
+                    child: const Text('Import Created Quiz')),
+              ),
+            ],
           ),
-          const Text('List of quiz project'),
-          const Padding(padding: EdgeInsets.all(8)),
-          Center(
-            child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => InitiateNewQuiz()));
-                },
-                child: const Text('Create new Quiz')),
-          ),
-          const Padding(padding: EdgeInsets.all(8)),
-          Center(
-            child: ElevatedButton(
-                onPressed: () {
-                  FilePicker.platform.pickFiles(
-                      type: FileType.custom, allowedExtensions: ['qmzip']);
-                },
-                child: const Text('Import Created Quiz')),
-          ),
-        ],
+        ),
       ),
     );
   }

@@ -120,7 +120,7 @@ class _PreviewState extends State<Preview> {
                                               ? Icons.radio_button_on_outlined
                                               : Icons
                                                   .radio_button_off_outlined)),
-                                      Padding(padding: EdgeInsets.all(4)),
+                                      const Padding(padding: EdgeInsets.all(4)),
                                       Expanded(
                                         child: InkWell(
                                           onTap: () {

@@ -33,21 +33,30 @@ class MakerBloc extends Bloc<MakerEvent, MakerState> {
   }
   _initializeFromFolder(
       InitiateFromFolder event, Emitter<MakerState> emit) async {
-    try {
-      var jsonFile = jsonDecode(await FileService().quizJsonFile(event.folder));
-      var decodedState = MakerLoaded.fromJson(jsonFile);
-      var newState = decodedState.gotoQuestion(decodedState.qSelectedIndex!);
-      emit(newState);
-    } catch (e) {
-      emit(MakerError(msg: e.toString()));
+    if (state is MakerInitial) {
+      try {
+        var jsonFile =
+            jsonDecode(await FileService().quizJsonFile(event.folder));
+        var decodedState = MakerLoaded.fromJson(jsonFile);
+        var newState = decodedState.gotoQuestion(0);
+        emit(newState);
+      } catch (e) {
+        emit(MakerError(msg: e.toString()));
+      }
     }
   }
 
   _savetoFile(SavetoFile event, Emitter<MakerState> emit) async {
-    var bool = await FileService().saveToFile(state as MakerLoaded);
-    emit((state as MakerLoaded).copywith(
-      saveSuccess: bool,
-    ));
+    try {
+      var bool = await FileService().saveToFile(state as MakerLoaded);
+      emit((state as MakerLoaded).copywith(
+        saveSuccess: bool,
+      ));
+    } catch (e) {
+      emit((state as MakerLoaded).copywith(
+        saveSuccess: false,
+      ));
+    }
   }
 
   _deleteSuccess(DeleteSuccess event, Emitter<MakerState> emit) async {
