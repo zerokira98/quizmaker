@@ -35,7 +35,7 @@ class _HomePageState extends State<HomePage> {
         title: const Text('quizmaker'),
       ),
       body: SingleChildScrollView(
-        child: Container(
+        child: SizedBox(
           height: MediaQuery.of(context).size.height - 64,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -78,7 +78,7 @@ class _HomePageState extends State<HomePage> {
                       // print('hei');
                       // print(snapshot.data);
                       if (snapshot.data!.isEmpty) {
-                        return Center(child: Text('Empty'));
+                        return const Center(child: Text('Empty'));
                       }
                       return ListView.builder(
                         itemBuilder: (context, i) {
@@ -98,7 +98,7 @@ class _HomePageState extends State<HomePage> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.start,
                               children: [
-                                Text(i.toString() + '.'),
+                                Text('$i.'),
                                 Expanded(
                                   flex: 2,
                                   child: Card(

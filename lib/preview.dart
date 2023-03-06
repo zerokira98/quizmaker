@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -34,6 +35,7 @@ class _PreviewState extends State<Preview> {
         json.map<Map<String, dynamic>>((e) => e).toList();
 
     // return '';
+    // print(yo);
     var telo = QuillDeltaToHtmlConverter(
         (yo),
         ConverterOptions(
@@ -48,8 +50,57 @@ class _PreviewState extends State<Preview> {
                     return 'padding-$side:${indentSize}em';
                   }),
                 }))));
+    telo.renderCustomWith = (DeltaInsertOp customOp, DeltaInsertOp? contextOp) {
+      if (customOp.insert.type == 'custom') {
+        var aew = jsonDecode(customOp.insert.value);
+        // var aew = "https://a.ppy.sh/970470?1327276945.jpg";
+        return '<img src="${aew['imgs']}" class="imgs">';
+        // return '<img src="$aew">';
+      } else {
+        return 'Unmanaged custom blot!';
+      }
+    };
+    print(telo.convert());
     return telo.convert();
   }
+
+  ImageSourceMatcher classAndIdMatcher({
+    required String classToMatch,
+  }) =>
+      (attributes, element) =>
+          attributes["class"] != null &&
+          attributes["class"]!.contains(classToMatch);
+
+  ImageRender classAndIdRender({
+    required String classToMatch,
+    required BuildContext ctx,
+  }) =>
+      (context, attributes, element) {
+        if (attributes["class"] != null &&
+            attributes["class"]!.contains(classToMatch)) {
+          return InkWell(
+            onTap: () {
+              // print('pressed');
+              showDialog(
+                context: ctx,
+                builder: (context) {
+                  return Dialog(
+                    child: Image.file(
+                      File(attributes["src"]!),
+                      // height: 100,
+                    ),
+                  );
+                },
+              );
+            },
+            child: Image.file(
+              File(attributes["src"]!),
+              height: 100,
+            ),
+          );
+        }
+        return null;
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -60,8 +111,9 @@ class _PreviewState extends State<Preview> {
         // leading: SizedBox(),
         title: const Text('kinda Live Preview'),
       ),
-      body: Center(
+      body: SingleChildScrollView(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             // Text('view $text'),
             BlocBuilder<MakerBloc, MakerState>(
@@ -70,7 +122,7 @@ class _PreviewState extends State<Preview> {
                   return InkWell(
                     onTap: () {
                       BlocProvider.of<MakerBloc>(context)
-                          .add(GoToNumber(state.qSelectedIndex!));
+                          .add(GoToNumber(state.qSelectedIndex));
                     },
                     child: Container(
                       padding: const EdgeInsets.all(4),
@@ -83,9 +135,22 @@ class _PreviewState extends State<Preview> {
                             width: 2),
                       ),
                       child: Html(
-                          data: htmlData(
-                              state.datas[state.qSelectedIndex!].textJson ??
-                                  '')),
+                        style: {
+                          "body": Style(
+                              padding: const EdgeInsets.all(0),
+                              margin: const EdgeInsets.all(0)),
+                          "p": Style(
+                              padding: EdgeInsets.zero,
+                              margin: EdgeInsets.zero),
+                        },
+                        data: htmlData(
+                            state.datas[state.qSelectedIndex].textJson ?? ''),
+                        customImageRenders: {
+                          classAndIdMatcher(classToMatch: "imgs"):
+                              classAndIdRender(
+                                  classToMatch: "imgs", ctx: context)
+                        },
+                      ),
                     ),
                   );
                 }
@@ -95,6 +160,20 @@ class _PreviewState extends State<Preview> {
             const Padding(padding: EdgeInsets.all(16)),
             BlocBuilder<MakerBloc, MakerState>(
               builder: (context, state) {
+                if (state is MakerLoaded &&
+                    state.datas[state.qSelectedIndex].answers.isNotEmpty) {
+                  return Row(
+                    children: [
+                      const Text('correct\nanswer'),
+                      Expanded(child: Container()),
+                    ],
+                  );
+                }
+                return const SizedBox();
+              },
+            ),
+            BlocBuilder<MakerBloc, MakerState>(
+              builder: (context, state) {
                 if (state is MakerLoaded) {
                   return Row(
                     mainAxisSize: MainAxisSize.max,
@@ -102,7 +181,7 @@ class _PreviewState extends State<Preview> {
                       Expanded(
                         child: Column(
                           children: List.generate(
-                              state.datas[state.qSelectedIndex!].answers.length,
+                              state.datas[state.qSelectedIndex].answers.length,
                               (index) => Row(
                                     children: [
                                       IconButton(
@@ -111,15 +190,16 @@ class _PreviewState extends State<Preview> {
                                                 .add(SetRightAnswer(
                                                     index: index));
                                           },
-                                          icon: Icon(EncryptService()
-                                                  .getAnswerBool(state
-                                                      .datas[
-                                                          state.qSelectedIndex!]
-                                                      .answers[index]
-                                                      .id)
-                                              ? Icons.radio_button_on_outlined
-                                              : Icons
-                                                  .radio_button_off_outlined)),
+                                          icon: Icon(
+                                            EncryptService().getAnswerBool(state
+                                                    .datas[state.qSelectedIndex]
+                                                    .answers[index]
+                                                    .id)
+                                                ? Icons.radio_button_on_outlined
+                                                : Icons
+                                                    .radio_button_off_outlined,
+                                            color: Colors.green[800],
+                                          )),
                                       const Padding(padding: EdgeInsets.all(4)),
                                       Expanded(
                                         child: InkWell(
@@ -128,7 +208,10 @@ class _PreviewState extends State<Preview> {
                                                 .add(SelectAnswer(index));
                                           },
                                           child: Container(
-                                            padding: const EdgeInsets.all(8),
+                                            padding: EdgeInsets.all(
+                                                state.aSelectedIndex == index
+                                                    ? 12
+                                                    : 8),
                                             margin: const EdgeInsets.symmetric(
                                                 vertical: 6),
                                             decoration: BoxDecoration(
@@ -137,7 +220,7 @@ class _PreviewState extends State<Preview> {
                                                 border: Border.all(
                                                     width: state.aSelectedIndex ==
                                                             index
-                                                        ? 2
+                                                        ? 3
                                                         : 1,
                                                     color:
                                                         state.aSelectedIndex ==
@@ -153,14 +236,34 @@ class _PreviewState extends State<Preview> {
                                                 const Padding(
                                                     padding: EdgeInsets.all(4)),
                                                 Expanded(
-                                                    child: Text(
-                                                  state
-                                                      .datas[
-                                                          state.qSelectedIndex!]
-                                                      .answers[index]
-                                                      .text!
-                                                      .trim(),
-                                                  // maxLines: 1,
+                                                    child: Html(
+                                                  style: {
+                                                    "body": Style(
+                                                        padding:
+                                                            const EdgeInsets.all(0),
+                                                        margin:
+                                                            const EdgeInsets.all(0)),
+                                                    "p": Style(
+                                                        padding:
+                                                            EdgeInsets.zero,
+                                                        margin:
+                                                            EdgeInsets.zero),
+                                                  },
+                                                  data: htmlData(state
+                                                          .datas[state
+                                                              .qSelectedIndex]
+                                                          .answers[index]
+                                                          .text ??
+                                                      ''),
+                                                  customImageRenders: {
+                                                    classAndIdMatcher(
+                                                            classToMatch:
+                                                                "imgs"):
+                                                        classAndIdRender(
+                                                            classToMatch:
+                                                                "imgs",
+                                                            ctx: context)
+                                                  },
                                                 )),
                                               ],
                                             ),

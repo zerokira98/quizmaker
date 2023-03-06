@@ -95,20 +95,16 @@ class _MainAppState extends State<MainApp> {
             },
             listener: (context, state) {
               if (state is MakerLoaded) {
-                // print('listen');
                 if (state.saveSuccess != null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('${state.saveSuccess}')));
-                  Future.delayed(const Duration(seconds: 5)).then((value) =>
-                      BlocProvider.of<MakerBloc>(context).add(DeleteSuccess()));
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(
+                          state.saveSuccess! ? 'Success' : 'Error occured')));
                 }
               }
             },
             child: BlocBuilder<MakerBloc, MakerState>(
               builder: (context, state) {
-                // print('$state');
                 if (state is MakerLoaded) {
-                  // print(state.datas.toString());
                   return Text(state.quizTitle);
                 }
                 return const Text('null');
@@ -116,44 +112,99 @@ class _MainAppState extends State<MainApp> {
             ),
           ),
         ),
-        body: BlocBuilder<MakerBloc, MakerState>(
-          builder: (context, state) {
-            if (state is MakerLoaded) {
-              return Container(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: [
-                    NavRail(_controller),
-                    Expanded(flex: 1, child: TextEditor(_controller)),
-                    // const Padding(padding: EdgeInsets.all(14)),
-                    Platform.isWindows
-                        ? Expanded(
-                            flex: 1,
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.only(left: 14.0, right: 14),
-                              child: Preview(_controller),
-                            ))
-                        : SizedBox(),
-                    // const Padding(padding: EdgeInsets.all(14)),
-                  ],
-                ),
-              );
+        body: BlocListener<MakerBloc, MakerState>(
+          listenWhen: (prev, curr) {
+            // print('prev:$prev');
+            if (prev is MakerInitial) {
+              if (curr is MakerLoaded) {
+                return true;
+              }
             }
-            if (state is MakerError) {
-              return Center(
-                child: Text(state.msg),
-              );
+            if (prev is MakerLoaded && curr is MakerLoaded) {
+              if (prev.aSelectedIndex != null && curr.aSelectedIndex == null) {
+                return true;
+              }
+              return prev.qSelectedIndex != curr.qSelectedIndex;
             }
-            if (state is MakerInitial) {
-              return const Center(
-                child: Text('Initializing'),
-              );
-            }
-            return const Center(
-              child: Text('null'),
-            );
+            return false;
           },
+          listener: (context, state) {
+            if (state is MakerLoaded) {
+              // print(a);
+              if (state.aSelectedIndex == null) {
+                String a = state.datas[state.qSelectedIndex].textJson ??
+                    '[{"insert":"\\n"}]';
+                try {
+                  var json = jsonDecode(a);
+                  _controller.document = q.Document.fromJson(json);
+                  _controller.moveCursorToEnd();
+                } catch (e) {
+                  debugPrint('error$e');
+                }
+              } else {}
+            }
+          },
+          child: BlocListener<MakerBloc, MakerState>(
+            listenWhen: (prev, curr) {
+              if (prev is MakerLoaded && curr is MakerLoaded) {
+                if (curr.aSelectedIndex == null) {
+                  return false;
+                }
+                return prev.aSelectedIndex != curr.aSelectedIndex;
+              }
+              return false;
+            },
+            listener: (context, state) {
+              if (state is MakerLoaded) {
+                String a = state.datas[state.qSelectedIndex]
+                            .answers[state.aSelectedIndex!].text ==
+                        ''
+                    ? '[{"insert":"\\n"}]'
+                    : state.datas[state.qSelectedIndex]
+                        .answers[state.aSelectedIndex!].text!;
+                try {
+                  var json = jsonDecode(a);
+                  _controller.document = q.Document.fromJson(json);
+                  _controller.moveCursorToEnd();
+                } catch (e) {
+                  debugPrint('error$e');
+                }
+              }
+            },
+            child: BlocBuilder<MakerBloc, MakerState>(
+              buildWhen: (previous, current) =>
+                  !((previous is MakerLoaded) && (current is MakerLoaded)),
+              builder: (context, state) {
+                if (state is MakerLoaded) {
+                  return Container(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      children: [
+                        NavRail(_controller),
+                        Expanded(flex: 1, child: TextEditor(_controller)),
+                        Platform.isWindows
+                            ? Expanded(
+                                flex: 1,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(
+                                      left: 14.0, right: 14),
+                                  child: Preview(_controller),
+                                ))
+                            : const SizedBox(),
+                      ],
+                    ),
+                  );
+                }
+                if (state is MakerError) {
+                  return Center(child: Text(state.msg));
+                }
+                if (state is MakerInitial) {
+                  return const Center(child: Text('Initializing'));
+                }
+                return const Center(child: Text('null'));
+              },
+            ),
+          ),
         ),
       ),
     );

@@ -27,12 +27,12 @@ class MakerError extends MakerState {
 class MakerLoaded extends MakerState {
   final bool? saveSuccess;
   final String quizTitle;
-  final int? qSelectedIndex;
+  final int qSelectedIndex;
   final int? aSelectedIndex;
   final List<Question> datas;
 
   const MakerLoaded(
-      {this.qSelectedIndex,
+      {required this.qSelectedIndex,
       this.saveSuccess,
       this.aSelectedIndex,
       required this.quizTitle,

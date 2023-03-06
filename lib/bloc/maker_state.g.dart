@@ -7,7 +7,7 @@ part of 'maker_state.dart';
 // **************************************************************************
 
 MakerLoaded _$MakerLoadedFromJson(Map<String, dynamic> json) => MakerLoaded(
-      qSelectedIndex: json['qSelectedIndex'] as int?,
+      qSelectedIndex: json['qSelectedIndex'] as int,
       saveSuccess: json['saveSuccess'] as bool?,
       aSelectedIndex: json['aSelectedIndex'] as int?,
       quizTitle: json['quizTitle'] as String,
