@@ -1,6 +1,7 @@
 import 'package:encrypt/encrypt.dart';
 
 class EncryptService {
+  final String uid = 'useremail';
   final String privatekey = 'CBoaDQIQAgceGg8dFAkMDBEOECEZCxgM';
   EncryptService();
 

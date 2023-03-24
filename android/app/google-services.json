@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "50900342589",
+    "project_id": "quizmaker-d31da",
+    "storage_bucket": "quizmaker-d31da.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:50900342589:android:08685479bcd6c8f2ef1754",
+        "android_client_info": {
+          "package_name": "com.zerokira98.quizmaker"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "50900342589-vafr4uenqj4ipauioko7et6kgcq8q46j.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.zerokira98.quizmaker",
+            "certificate_hash": "f3226b75df826e224af8ba438dc4c4c6dfd38908"
+          }
+        },
+        {
+          "client_id": "50900342589-u9pcl8b8198ep6bn5ng7489bclnritt1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBm2xNF7LRuOuqNpukPndlA18pKHZ5HHEY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "50900342589-u9pcl8b8198ep6bn5ng7489bclnritt1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

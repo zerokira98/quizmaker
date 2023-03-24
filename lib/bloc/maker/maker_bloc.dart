@@ -96,6 +96,8 @@ class MakerBloc extends Bloc<MakerEvent, MakerState> {
       // var file = File('${projectDir.path}quiz.json');
       // await file.writeAsString(jsonEncode(newState.toJson()));
       emit(newState);
+      add(AddAnswer());
+      add(GoToNumber(0));
     } catch (e) {
       throw Exception('error:$e');
     }
@@ -218,6 +220,8 @@ class MakerBloc extends Bloc<MakerEvent, MakerState> {
     var newQuestion = Question(id: encrypted, answers: const []);
     var newDatas = prevdata + [newQuestion];
     emit(theState.copywith(datas: newDatas));
+    add(GoToNumber(theState.datas.length));
+    add(AddAnswer());
     add(GoToNumber(theState.datas.length));
   }
 }

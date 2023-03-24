@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart' as q;
-import 'package:quizmaker/bloc/maker_bloc.dart';
-import 'package:quizmaker/bloc/maker_state.dart';
+import 'package:quizmaker/bloc/maker/maker_bloc.dart';
+import 'package:quizmaker/bloc/maker/maker_state.dart';
 
 class NavRail extends StatefulWidget {
   final q.QuillController controller;

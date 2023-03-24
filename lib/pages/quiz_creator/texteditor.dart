@@ -4,10 +4,11 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+// import 'package:flutter_html/flutter_html.dart';
 
 import 'package:flutter_quill/flutter_quill.dart' as q;
-import 'package:quizmaker/bloc/maker_bloc.dart';
-import 'package:quizmaker/bloc/maker_state.dart';
+import 'package:quizmaker/bloc/maker/maker_bloc.dart';
+import 'package:quizmaker/bloc/maker/maker_state.dart';
 import 'package:quizmaker/service/file_service.dart';
 // import 'package:quizmaker/embed/image_embed.dart';
 // import 'package:quizmaker/embed/toolbar/image_button.dart';
@@ -48,6 +49,10 @@ class _TextEditorState extends State<TextEditor> {
       builder: (context) => StatefulBuilder(builder: (context, setstate) {
         return AlertDialog(
           titlePadding: const EdgeInsets.all(16),
+          actions: [
+            ElevatedButton(
+                onPressed: () => Navigator.pop(context), child: const Text('Done'))
+          ],
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -84,9 +89,9 @@ class _TextEditorState extends State<TextEditor> {
 
     if (isEditing) {
       final offset =
-          q.getEmbedNode(controller, controller.selection.start).item1;
-      controller.replaceText(
-          offset, 1, block, TextSelection.collapsed(offset: offset));
+          q.getEmbedNode(controller, controller.selection.start).value;
+      controller.replaceText(offset.offset, 1, block,
+          TextSelection.collapsed(offset: offset.offset));
     } else {
       controller.replaceText(index, length, block, null);
     }
@@ -94,70 +99,85 @@ class _TextEditorState extends State<TextEditor> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(border: Border.all()),
+    return Card(
+      elevation: 1,
+      child: Container(
+        // padding: const EdgeInsets.all(8),
+        // decoration: BoxDecoration(border: Border.all()),
         child: Column(children: [
-          Row(
-            children: [
-              BlocBuilder<MakerBloc, MakerState>(
-                builder: (context, state) {
-                  if (state is MakerLoaded) {
-                    String content = state.aSelectedIndex != null
-                        ? 'Answer ${state.aSelectedIndex}'
-                        : 'Question';
-                    return Card(
-                      elevation: 8,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(content),
-                      ),
-                    );
-                  }
-                  return Container();
-                },
-              ),
-              Expanded(child: Container()),
-              ElevatedButton.icon(
-                  onPressed: () {
-                    var state = (BlocProvider.of<MakerBloc>(context).state
-                        as MakerLoaded);
-                    BlocProvider.of<MakerBloc>(context)
-                        .add(DeleteQuestion(state.qSelectedIndex));
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                BlocBuilder<MakerBloc, MakerState>(
+                  builder: (context, state) {
+                    if (state is MakerLoaded) {
+                      String content = state.aSelectedIndex != null
+                          ? 'Answer ${state.aSelectedIndex}'
+                          : 'Question';
+                      return Card(
+                        elevation: 4,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(content),
+                        ),
+                      );
+                    }
+                    return Container();
                   },
-                  icon: const Icon(Icons.delete),
-                  label: const Text('Delete Question'))
-            ],
+                ),
+                Expanded(child: Container()),
+                ElevatedButton.icon(
+                    onPressed: () {
+                      var state = (BlocProvider.of<MakerBloc>(context).state
+                          as MakerLoaded);
+                      BlocProvider.of<MakerBloc>(context)
+                          .add(DeleteQuestion(state.qSelectedIndex));
+                    },
+                    icon: const Icon(Icons.delete),
+                    label: const Text('Delete Question'))
+              ],
+            ),
           ),
-          q.QuillToolbar.basic(
-            customButtons: [
-              q.QuillCustomButton(
-                  icon: Icons.image,
-                  onTap: () {
-                    _addEditNote(context);
-                  }),
-            ],
-            controller: widget.controller,
-            showAlignmentButtons: false,
-            showDirection: false,
-            showBackgroundColorButton: false,
-            // showJustifyAlignment: false,
-            // showCenterAlignment: false,
-            showHeaderStyle: false,
-            showSearchButton: false,
-            showListCheck: false,
-            showCodeBlock: false,
-            // showIndent: false,
+          Card(
+            child: q.QuillToolbar.basic(
+              customButtons: [
+                q.QuillCustomButton(
+                    icon: Icons.image,
+                    onTap: () {
+                      _addEditNote(context);
+                    }),
+              ],
+              controller: widget.controller,
+              showAlignmentButtons: false,
+              showDirection: false,
+              showBackgroundColorButton: false,
+              // showJustifyAlignment: false,
+              // showCenterAlignment: false,
+              showHeaderStyle: false,
+              showSearchButton: false,
+              showListCheck: false,
+              showCodeBlock: false,
+              // showIndent: false,
+            ),
           ),
           Expanded(
+              child: Card(
+            margin: const EdgeInsets.all(8),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
               child: q.QuillEditor.basic(
-            embedBuilders: [
-              ImageEmbedBuildery(addEditNote: _addEditNote),
-            ],
-            controller: widget.controller,
-            readOnly: false, // true for view only mode
+                embedBuilders: [
+                  ImageEmbedBuildery(addEditNote: _addEditNote),
+                ],
+                controller: widget.controller,
+                readOnly: false, // true for view only mode
+              ),
+            ),
           ))
-        ]));
+        ]),
+      ),
+    );
   }
 }
 
@@ -191,16 +211,20 @@ class ImageEmbedBuildery implements q.EmbedBuilder {
 
     return Material(
       color: Colors.transparent,
-      child: ListTile(
-        title: Image.file(
-          File(path),
-          height: 100,
-        ),
-        // leading: const Icon(Icons.notes),
-        onTap: () => addEditNote(context, path: path),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-          side: const BorderSide(color: Colors.grey),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 18),
+        child: ListTile(
+          title: Image.file(
+            File(path),
+            height: 100,
+            width: 100,
+          ),
+          // leading: const Icon(Icons.notes),
+          onTap: () => addEditNote(context, path: path),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+            side: const BorderSide(color: Colors.grey),
+          ),
         ),
       ),
     );

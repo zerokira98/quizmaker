@@ -1,20 +1,60 @@
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:quizmaker/bloc/maker_bloc.dart';
-import 'package:quizmaker/mainapp.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:quizmaker/bloc/auth/auth_bloc.dart';
+import 'package:quizmaker/bloc/login/login_bloc.dart';
+import 'package:quizmaker/bloc/maker/maker_bloc.dart';
+import 'package:quizmaker/pages/loginpage/loginpage.dart';
+import 'package:quizmaker/pages/quiz_creator/mainapp.dart';
+import 'package:quizmaker/pages/splashscreen.dart';
+import 'package:quizmaker/repo/authrepo/authrepo.dart';
 import 'package:quizmaker/service/file_service.dart';
+import 'package:quizmaker/msc/themedata.dart';
 
-void main() {
-  runApp(BlocProvider(
-    create: (context) => MakerBloc(),
-    child: MaterialApp(
-        themeMode: ThemeMode.dark,
-        theme: ThemeData(
-            colorSchemeSeed: const Color(0xff6750a4), useMaterial3: true),
-        home: const HomePage()),
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+      options: const FirebaseOptions(
+          apiKey: "AIzaSyDebeOIE8-ePsMle-VqkSqoCTwpvo0L_pg",
+          authDomain: "quizmaker-d31da.firebaseapp.com",
+          projectId: "quizmaker-d31da",
+          storageBucket: "quizmaker-d31da.appspot.com",
+          messagingSenderId: "50900342589",
+          appId: "1:50900342589:web:8b6b8b6aa4bd1ce7ef1754",
+          measurementId: "G-S9PDMQS23V"));
+  // var authrepo = AuthenticationRepository(
+  //     firebaseAuth: FirebaseAuth.instance,
+  //     googleSignIn: GoogleSignIn.standard());
+  runApp(RepositoryProvider(
+    create: (context) => AuthenticationRepository(),
+    child: MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => MakerBloc(),
+        ),
+        BlocProvider(
+          create: (context) => AuthBloc(
+              authenticationRepository:
+                  RepositoryProvider.of<AuthenticationRepository>(context)),
+        ),
+        // BlocProvider(
+        //   create: (context) => LoginCubit(
+        //       RepositoryProvider.of<AuthenticationRepository>(context)),
+        //   child: Container(),
+        // )
+      ],
+      child: MaterialApp(
+          themeMode: ThemeMode.dark,
+          theme: ThemeDatas().lightTheme(),
+          darkTheme: ThemeDatas().darkTheme(),
+          home: const SplashScreen()),
+    ),
   ));
 }
 
@@ -32,7 +72,15 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('quizmaker'),
+        title: Text(
+            'Welcome, ${context.read<AuthenticationRepository>().currentUser.id}'),
+        actions: [
+          ElevatedButton(
+              onPressed: () {
+                BlocProvider.of<AuthBloc>(context).add(AppLogoutRequested());
+              },
+              child: Text('LogOut'))
+        ],
       ),
       body: SingleChildScrollView(
         child: SizedBox(
