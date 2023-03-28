@@ -20,6 +20,7 @@ class Preview extends StatefulWidget {
 
 class _PreviewState extends State<Preview> {
   final q.QuillController qc = q.QuillController.basic();
+  bool editingview = true;
   // String text = "";
   @override
   void initState() {
@@ -60,7 +61,7 @@ class _PreviewState extends State<Preview> {
         return 'Unmanaged custom blot!';
       }
     };
-    print(telo.convert());
+    // print(telo.convert());
     return telo.convert();
   }
 
@@ -83,6 +84,16 @@ class _PreviewState extends State<Preview> {
             automaticallyImplyLeading: false,
             // leading: SizedBox(),
             title: const Text('kinda Live Preview'),
+            actions: [
+              IconButton(
+                  onPressed: () {
+                    setState(() {
+                      editingview = !editingview;
+                    });
+                  },
+                  icon: Icon(
+                      editingview ? Icons.visibility : Icons.visibility_off))
+            ],
           ),
           body: Card(
             elevation: 1,
@@ -159,21 +170,23 @@ class _PreviewState extends State<Preview> {
                       },
                     ),
                     const Padding(padding: EdgeInsets.all(16)),
-                    BlocBuilder<MakerBloc, MakerState>(
-                      builder: (context, state) {
-                        if (state is MakerLoaded &&
-                            state.datas[state.qSelectedIndex].answers
-                                .isNotEmpty) {
-                          return Row(
-                            children: [
-                              const Text('correct\nanswer'),
-                              Expanded(child: Container()),
-                            ],
-                          );
-                        }
-                        return const SizedBox();
-                      },
-                    ),
+                    editingview
+                        ? BlocBuilder<MakerBloc, MakerState>(
+                            builder: (context, state) {
+                              if (state is MakerLoaded &&
+                                  state.datas[state.qSelectedIndex].answers
+                                      .isNotEmpty) {
+                                return Row(
+                                  children: [
+                                    const Text('correct\nanswer'),
+                                    Expanded(child: Container()),
+                                  ],
+                                );
+                              }
+                              return const SizedBox();
+                            },
+                          )
+                        : SizedBox(),
                     BlocBuilder<MakerBloc, MakerState>(
                       builder: (context, state) {
                         if (state is MakerLoaded) {
@@ -187,26 +200,31 @@ class _PreviewState extends State<Preview> {
                                           .length,
                                       (index) => Row(
                                             children: [
-                                              IconButton(
-                                                  onPressed: () {
-                                                    BlocProvider.of<MakerBloc>(
-                                                            context)
-                                                        .add(SetRightAnswer(
-                                                            index: index));
-                                                  },
-                                                  icon: Icon(
-                                                    EncryptService()
-                                                            .getAnswerBool(state
-                                                                .datas[state
-                                                                    .qSelectedIndex]
-                                                                .answers[index]
-                                                                .id)
-                                                        ? Icons
-                                                            .radio_button_on_outlined
-                                                        : Icons
-                                                            .radio_button_off_outlined,
-                                                    color: Colors.green[800],
-                                                  )),
+                                              editingview
+                                                  ? IconButton(
+                                                      onPressed: () {
+                                                        BlocProvider.of<
+                                                                    MakerBloc>(
+                                                                context)
+                                                            .add(SetRightAnswer(
+                                                                index: index));
+                                                      },
+                                                      icon: Icon(
+                                                        EncryptService()
+                                                                .getAnswerBool(state
+                                                                    .datas[state
+                                                                        .qSelectedIndex]
+                                                                    .answers[
+                                                                        index]
+                                                                    .id)
+                                                            ? Icons
+                                                                .radio_button_on_outlined
+                                                            : Icons
+                                                                .radio_button_off_outlined,
+                                                        color:
+                                                            Colors.green[800],
+                                                      ))
+                                                  : SizedBox(),
                                               const Padding(
                                                   padding: EdgeInsets.all(4)),
                                               Expanded(
@@ -246,7 +264,7 @@ class _PreviewState extends State<Preview> {
                                                           CrossAxisAlignment
                                                               .start,
                                                       children: [
-                                                        Text('$index.'),
+                                                        Text('${index + 1}.'),
                                                         const Padding(
                                                             padding:
                                                                 EdgeInsets.all(
@@ -310,19 +328,24 @@ class _PreviewState extends State<Preview> {
                                                   ),
                                                 ),
                                               ),
-                                              InkWell(
-                                                  onTap: () {
-                                                    BlocProvider.of<MakerBloc>(
-                                                            context)
-                                                        .add(DeleteAnswer(
-                                                            index: index));
-                                                  },
-                                                  child: const Padding(
-                                                    padding:
-                                                        EdgeInsets.all(8.0),
-                                                    child: Icon(
-                                                        Icons.delete_outline),
-                                                  ))
+                                              editingview
+                                                  ? InkWell(
+                                                      onTap: () {
+                                                        BlocProvider.of<
+                                                                    MakerBloc>(
+                                                                context)
+                                                            .add(DeleteAnswer(
+                                                                index: index));
+                                                      },
+                                                      child: const Padding(
+                                                        padding:
+                                                            EdgeInsets.all(8.0),
+                                                        child: Icon(Icons
+                                                            .delete_outline),
+                                                      ))
+                                                  : SizedBox(),
+                                              const Padding(
+                                                  padding: EdgeInsets.all(4)),
                                             ],
                                           )),
                                 ),
@@ -334,32 +357,34 @@ class _PreviewState extends State<Preview> {
                       },
                     ),
                     const Padding(padding: EdgeInsets.all(8)),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: InkWell(
-                            onTap: () {
-                              BlocProvider.of<MakerBloc>(context)
-                                  .add(AddAnswer());
-                            },
-                            child: Container(
-                              // width: double.infinity,
-                              padding: const EdgeInsets.all(4),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(4.0),
-                                border: Border.all(
-                                    color: Theme.of(context).primaryColor,
-                                    width: 2),
+                    editingview
+                        ? Row(
+                            children: [
+                              Expanded(
+                                child: InkWell(
+                                  onTap: () {
+                                    BlocProvider.of<MakerBloc>(context)
+                                        .add(AddAnswer());
+                                  },
+                                  child: Container(
+                                    // width: double.infinity,
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(4.0),
+                                      border: Border.all(
+                                          color: Theme.of(context).primaryColor,
+                                          width: 2),
+                                    ),
+                                    child: const Text(
+                                      'Tambah Jawaban +',
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
                               ),
-                              child: const Text(
-                                'Tambah Jawaban +',
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
+                            ],
+                          )
+                        : SizedBox()
                     // Container(
                     //     // color: Colors.red,
                     //     child: textViewBuilder(context, widget.controller.document)),

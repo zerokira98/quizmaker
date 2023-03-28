@@ -105,40 +105,76 @@ class FileService {
     return url;
   }
 
+  getQuizProjectDir() async {
+    var appDir = await getApplicationDocumentsDirectory();
+    Directory projectDir = Directory(path.join(appDir.path, 'project'));
+    return projectDir.path;
+  }
+
   Future createZip(MakerLoaded state) async {
     var appDir = await getApplicationDocumentsDirectory();
-    var projectDir = await Directory(path.join(
-      appDir.path,
-      'project',
-      state.quizTitle,
-    )).create();
-    var exportedDir = await Directory(path.join(
-      appDir.path,
-      'project',
-      'exported',
-    )).create();
-    // final dataDir = Directory("data_dir_path");
-    try {
-      // print(projectDir.path);
-      final zipFile =
-          File(path.join(exportedDir.path, '${state.quizTitle}.qm'));
+    var savedir = await FilePicker.platform.saveFile(
+        initialDirectory: appDir.path,
+        fileName: state.quizTitle,
+        type: FileType.custom,
+        allowedExtensions: ['qmzip'],
+        dialogTitle: 'Save to');
+    if (savedir != null) {
+      print(savedir + '.qmzip');
+      try {
+        // print(projectDir.path);
+        final zipFile = File(savedir);
 
-      var encoder = ZipFileEncoder();
-      // encoder.zipDirectory(Directory('out'), filename: 'out.zip');
-      // encoder.zipDirectory(
-      //   projectDir,
-      //   filename: path.basename(zipFile.path),
-      // );
-      encoder.create(zipFile.path);
-      await encoder.addDirectory(
-        projectDir,
-      );
+        var projectDir = await Directory(path.join(
+          appDir.path,
+          'project',
+          state.quizTitle,
+        )).create();
 
-      // encoder.addFile(projectFile);
-      encoder.close();
-    } catch (e) {
-      print(e);
+        var encoder = ZipFileEncoder();
+        // encoder.zipDirectory(Directory('out'), filename: 'out.zip');
+        // encoder.zipDirectory(
+        //   projectDir,
+        //   filename: path.basename(zipFile.path),
+        // );
+        encoder.create(zipFile.path);
+        await encoder.addDirectory(
+          projectDir,
+        );
+
+        // encoder.addFile(projectFile);
+        encoder.close();
+      } catch (e) {
+        print(e);
+      }
     }
+    // var exportedDir = await Directory(path.join(
+    //   appDir.path,
+    //   'project',
+    //   'exported',
+    // )).create();
+    // final dataDir = Directory("data_dir_path");
+    // try {
+    //   // print(projectDir.path);
+    //   final zipFile =
+    //       File(path.join(exportedDir.path, '${state.quizTitle}.qm'));
+
+    //   var encoder = ZipFileEncoder();
+    //   // encoder.zipDirectory(Directory('out'), filename: 'out.zip');
+    //   // encoder.zipDirectory(
+    //   //   projectDir,
+    //   //   filename: path.basename(zipFile.path),
+    //   // );
+    //   encoder.create(zipFile.path);
+    //   await encoder.addDirectory(
+    //     projectDir,
+    //   );
+
+    //   // encoder.addFile(projectFile);
+    //   encoder.close();
+    // } catch (e) {
+    //   print(e);
+    // }
   }
 
   Future openZip(String zipPath) async {

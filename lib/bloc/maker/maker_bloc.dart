@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:bloc/bloc.dart';
 import 'package:flutter/foundation.dart';
+import 'package:quizmaker/repo/authrepo/authrepo.dart';
 import 'package:quizmaker/service/encrypt_service.dart';
 import 'package:quizmaker/service/file_service.dart';
 import 'maker_state.dart';
@@ -13,7 +14,8 @@ import 'maker_state.dart';
 part 'maker_event.dart';
 
 class MakerBloc extends Bloc<MakerEvent, MakerState> {
-  MakerBloc() : super(MakerInitial()) {
+  AuthenticationRepository repo;
+  MakerBloc({required this.repo}) : super(MakerInitial()) {
     on<ReturntoInitial>(_backtoInitialstate);
     on<Initialize>(_initialize);
     on<InitiateFromFolder>(_initializeFromFolder);
@@ -89,14 +91,25 @@ class MakerBloc extends Bloc<MakerEvent, MakerState> {
       final title = '${event.title}_0';
       var qId = await EncryptService().questionIdfromIndex(title);
       var questData = Question(id: qId, answers: const []);
+
+      ///
+      for (var i = 0; i < 4; i++) {
+        var aId = EncryptService().setAnswerId(i, qId, false);
+        var newAnswer = Answer(aId, '', null, null);
+        questData =
+            questData.copywith(answers: questData.answers + [newAnswer]);
+      }
       var newState = MakerLoaded(
-          quizTitle: event.title, datas: [questData], qSelectedIndex: 0);
+          quizTitle: event.title,
+          datas: [questData],
+          qSelectedIndex: 0,
+          makerUid: repo.currentUser.id);
       var isSuccess = await FileService().saveToFile(newState);
       if (!isSuccess) throw Exception('not true');
       // var file = File('${projectDir.path}quiz.json');
       // await file.writeAsString(jsonEncode(newState.toJson()));
       emit(newState);
-      add(AddAnswer());
+      // add(AddAnswer());
       add(GoToNumber(0));
     } catch (e) {
       throw Exception('error:$e');
@@ -221,7 +234,9 @@ class MakerBloc extends Bloc<MakerEvent, MakerState> {
     var newDatas = prevdata + [newQuestion];
     emit(theState.copywith(datas: newDatas));
     add(GoToNumber(theState.datas.length));
-    add(AddAnswer());
+    for (var i = 0; i < 4; i++) {
+      add(AddAnswer());
+    }
     add(GoToNumber(theState.datas.length));
   }
 }

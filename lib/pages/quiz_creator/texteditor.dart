@@ -44,6 +44,7 @@ class _TextEditorState extends State<TextEditor> {
   Future<void> _addEditNote(BuildContext context, {String? path}) async {
     final isEditing = path != null;
     String url = path ?? '';
+    String? selectedUrl;
     await showDialog(
       context: context,
       builder: (context) => StatefulBuilder(builder: (context, setstate) {
@@ -51,7 +52,8 @@ class _TextEditorState extends State<TextEditor> {
           titlePadding: const EdgeInsets.all(16),
           actions: [
             ElevatedButton(
-                onPressed: () => Navigator.pop(context), child: const Text('Done'))
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Done'))
           ],
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -63,7 +65,7 @@ class _TextEditorState extends State<TextEditor> {
                       as MakerLoaded);
                   var a = await FilePicker.platform.pickFiles();
                   if (a != null) {
-                    url = await FileService()
+                    selectedUrl = await FileService()
                         .savePictToProjectDir(a, state, pictpath: path);
                     setstate(() {});
                   }
@@ -72,28 +74,36 @@ class _TextEditorState extends State<TextEditor> {
               )
             ],
           ),
-          content: url.isEmpty ? const SizedBox() : Image.file(File(url)),
+          content: url.isEmpty
+              ? selectedUrl != null
+                  ? Image.file(File(selectedUrl!))
+                  : SizedBox()
+              : selectedUrl != null
+                  ? Image.file(File(selectedUrl!))
+                  : Image.file(File(url)),
         );
       }),
     );
 
-    if (url.isEmpty) return;
+    if (selectedUrl == null) return;
+    if (selectedUrl != null) {
+      if (selectedUrl == url) return;
+      // final block = q.BlockEmbed.image(url);
+      final block = q.BlockEmbed.custom(
+        ImageBlockEmbedy(selectedUrl!),
+      );
+      final controller = widget.controller;
+      final index = controller.selection.baseOffset;
+      final length = controller.selection.extentOffset - index;
 
-    // final block = q.BlockEmbed.image(url);
-    final block = q.BlockEmbed.custom(
-      ImageBlockEmbedy(url),
-    );
-    final controller = widget.controller;
-    final index = controller.selection.baseOffset;
-    final length = controller.selection.extentOffset - index;
-
-    if (isEditing) {
-      final offset =
-          q.getEmbedNode(controller, controller.selection.start).value;
-      controller.replaceText(offset.offset, 1, block,
-          TextSelection.collapsed(offset: offset.offset));
-    } else {
-      controller.replaceText(index, length, block, null);
+      if (isEditing) {
+        final offset =
+            q.getEmbedNode(controller, controller.selection.start).offset;
+        controller.replaceText(
+            offset, 1, block, TextSelection.collapsed(offset: offset));
+      } else {
+        controller.replaceText(index, length, block, null);
+      }
     }
   }
 

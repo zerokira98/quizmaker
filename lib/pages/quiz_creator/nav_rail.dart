@@ -46,9 +46,14 @@ class _NavRailState extends State<NavRail> {
                       icon: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.album_outlined),
+                          Icon(
+                            Icons.album_outlined,
+                            color: state.datas[i].valdi()
+                                ? Colors.green
+                                : Colors.grey,
+                          ),
                           const Padding(padding: EdgeInsets.all(2)),
-                          Text('$i'),
+                          Text('${i + 1}'),
                         ],
                       ),
                       label: SizedBox(

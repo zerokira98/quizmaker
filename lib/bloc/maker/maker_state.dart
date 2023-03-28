@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 // ignore: depend_on_referenced_packages
 import 'package:json_annotation/json_annotation.dart';
+import 'package:quizmaker/service/encrypt_service.dart';
 
 part 'maker_state.g.dart';
 
@@ -26,7 +27,10 @@ class MakerError extends MakerState {
 @JsonSerializable()
 class MakerLoaded extends MakerState {
   final bool? saveSuccess;
+  final String? makerUid;
   final String quizTitle;
+
+  ///Selected question index
   final int qSelectedIndex;
   final int? aSelectedIndex;
   final List<Question> datas;
@@ -34,6 +38,7 @@ class MakerLoaded extends MakerState {
   const MakerLoaded(
       {required this.qSelectedIndex,
       this.saveSuccess,
+      this.makerUid,
       this.aSelectedIndex,
       required this.quizTitle,
       required this.datas});
@@ -50,9 +55,24 @@ class MakerLoaded extends MakerState {
     return MakerLoaded(
         quizTitle: quizTitle,
         saveSuccess: saveSuccess ?? this.saveSuccess,
+        makerUid: makerUid,
         datas: datas ?? this.datas,
         qSelectedIndex: qSelectedIndex ?? this.qSelectedIndex,
         aSelectedIndex: aSelectedIndex ?? this.aSelectedIndex);
+  }
+
+  bool valdi() {
+    for (var element in datas) {
+      var correctSelected = element.answers.where(
+        (element) {
+          return EncryptService().getAnswerBool(element.id);
+        },
+      );
+      if (correctSelected.isEmpty) {
+        return false;
+      }
+    }
+    return true;
   }
 
   MakerLoaded gotoQuestion(int qSelectedIndex) {
@@ -105,6 +125,15 @@ class Question extends Equatable {
         textJson: textJson ?? this.textJson,
         mp3: mp3 ?? this.mp3,
         img: img);
+  }
+
+  bool valdi() {
+    var selectCorrect = answers
+        .where((element) => (EncryptService().getAnswerBool(element.id)));
+    if (selectCorrect.length != 1) {
+      return false;
+    }
+    return true;
   }
 
   @override

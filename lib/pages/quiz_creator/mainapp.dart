@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quizmaker/bloc/maker/maker_bloc.dart';
 import 'package:quizmaker/bloc/maker/maker_state.dart';
+import 'package:quizmaker/pages/quiz_creator/settingsbutton.dart';
 import './nav_rail.dart';
 import './preview.dart';
 import 'package:quizmaker/service/file_service.dart';
@@ -29,6 +30,7 @@ class _MainAppState extends State<MainApp> {
   textListener() {
     var plaintext = _controller.document.toPlainText();
     var jsonString = jsonEncode(_controller.document.toDelta().toJson());
+    print(jsonString);
     BlocProvider.of<MakerBloc>(context)
         .add(UpdateQuestion(plaintext, jsonString));
   }
@@ -50,47 +52,7 @@ class _MainAppState extends State<MainApp> {
         ),
         appBar: AppBar(
           actions: [
-            ElevatedButton.icon(
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      return Dialog.fullscreen(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.max,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text(
-                              'Settings',
-                              textScaleFactor: 1.5,
-                            ),
-                            const Padding(padding: EdgeInsets.all(8)),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: ElevatedButton(
-                                  onPressed: () {
-                                    FileService().createZip(
-                                        BlocProvider.of<MakerBloc>(context)
-                                            .state as MakerLoaded);
-                                  },
-                                  child: const Text('Export QuizData')),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: ElevatedButton(
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                  child: const Text('Close')),
-                            )
-                          ],
-                        ),
-                      );
-                    },
-                  );
-                },
-                icon: const Icon(Icons.settings),
-                label: const Text('Settings')),
+            const SettingButton(),
             const Padding(padding: EdgeInsets.all(8)),
             ElevatedButton.icon(
                 onPressed: () {
