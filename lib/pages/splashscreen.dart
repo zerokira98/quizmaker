@@ -13,11 +13,11 @@ class SplashScreen extends StatelessWidget {
       builder: (context, state) {
         switch (state.status) {
           case AppStatus.authenticated:
-            return HomePage();
+            return const HomePage();
           case AppStatus.unauthenticated:
-            return LoginPage();
+            return const LoginPage();
           default:
-            return Center(
+            return const Center(
               child: Text('Weird State'),
             );
         }

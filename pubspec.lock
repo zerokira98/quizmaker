@@ -578,10 +578,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_quill
-      sha256: "60101d160b0eff277c7b05bc245dc61e0683dc8b46b8361adf2814e05c6f1e39"
+      sha256: "8592b6752635e680a9b640cf198cf4a674eb4efa1b4654137043379c87de648d"
       url: "https://pub.dev"
     source: hosted
-    version: "7.0.1"
+    version: "7.0.3"
   flutter_test:
     dependency: "direct dev"
     description: flutter

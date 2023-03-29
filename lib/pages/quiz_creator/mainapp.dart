@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,7 +7,6 @@ import 'package:quizmaker/bloc/maker/maker_state.dart';
 import 'package:quizmaker/pages/quiz_creator/settingsbutton.dart';
 import './nav_rail.dart';
 import './preview.dart';
-import 'package:quizmaker/service/file_service.dart';
 import './texteditor.dart';
 import 'package:flutter_quill/flutter_quill.dart' as q;
 
@@ -165,7 +163,7 @@ class _MainAppState extends State<MainApp> {
                           Expanded(
                               // flex: 1,
                               child: TextEditor(_controller)),
-                          Platform.isWindows
+                          MediaQuery.of(context).orientation.index == 1
                               ? Expanded(
                                   // flex: 1,
                                   child: Padding(
@@ -173,7 +171,28 @@ class _MainAppState extends State<MainApp> {
                                       left: 14.0, right: 14),
                                   child: Preview(_controller),
                                 ))
-                              : const SizedBox(),
+                              : InkWell(
+                                  onTap: () {
+                                    Scaffold.of(context).openEndDrawer();
+                                  },
+                                  child: Container(
+                                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                                    width: 18,
+                                    decoration: const BoxDecoration(
+                                      gradient: LinearGradient(colors: [
+                                        Colors.transparent,
+                                        Colors.transparent,
+                                        Colors.blueGrey,
+                                        Colors.blueGrey,
+                                        Colors.transparent,
+                                      ]),
+                                    ),
+                                    child: const Center(
+                                        child: Icon(
+                                      Icons.arrow_left,
+                                    )),
+                                  ),
+                                ),
                         ],
                       ),
                     );

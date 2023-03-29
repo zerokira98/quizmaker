@@ -6,7 +6,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quizmaker/bloc/maker/maker_bloc.dart';
 import 'package:quizmaker/pages/quiz_creator/mainapp.dart';
 import 'package:quizmaker/service/file_service.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class HomePageCreate extends StatefulWidget {
@@ -126,7 +125,7 @@ class _HomePageCreateState extends State<HomePageCreate> {
                       var a = await FileService().getQuizProjectDir();
                       launchUrlString('file://$a');
                     },
-                    child: Text('Open Quiz Project Folder')),
+                    child: const Text('Open Quiz Project Folder')),
               ),
               const Padding(padding: EdgeInsets.all(8)),
               Center(

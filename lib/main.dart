@@ -1,20 +1,11 @@
-import 'dart:io';
-
-import 'package:file_picker/file_picker.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:quizmaker/bloc/auth/auth_bloc.dart';
-import 'package:quizmaker/bloc/login/login_bloc.dart';
 import 'package:quizmaker/bloc/maker/maker_bloc.dart';
-import 'package:quizmaker/pages/loginpage/loginpage.dart';
 import 'package:quizmaker/pages/quiz_creator/home.dart';
-import 'package:quizmaker/pages/quiz_creator/mainapp.dart';
 import 'package:quizmaker/pages/splashscreen.dart';
 import 'package:quizmaker/repo/authrepo/authrepo.dart';
-import 'package:quizmaker/service/file_service.dart';
 import 'package:quizmaker/msc/themedata.dart';
 
 void main() async {
@@ -72,9 +63,9 @@ class HomePage extends StatelessWidget {
         actions: [
           ElevatedButton(
               onPressed: () {
-                BlocProvider.of<AuthBloc>(context).add(AppLogoutRequested());
+                BlocProvider.of<AuthBloc>(context).add(const AppLogoutRequested());
               },
-              child: Text('LogOut'))
+              child: const Text('LogOut'))
         ],
       ),
       body: Center(
@@ -85,7 +76,7 @@ class HomePage extends StatelessWidget {
           children: [
             InkWell(
               onTap: () {},
-              child: Container(
+              child: const SizedBox(
                   width: 192,
                   height: 192,
                   child: Card(
@@ -98,7 +89,7 @@ class HomePage extends StatelessWidget {
               onTap: () {
                 Navigator.of(context).push(HomePageCreate.route());
               },
-              child: Container(
+              child: const SizedBox(
                   width: 192,
                   height: 192,
                   child: Card(

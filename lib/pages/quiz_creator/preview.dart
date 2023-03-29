@@ -48,7 +48,7 @@ class _PreviewState extends State<Preview> {
                         (double.tryParse(value) ?? double.nan) * 6;
                     final side =
                         op.attributes['direction'] == 'rtl' ? 'right' : 'left';
-                    return 'padding-$side:${indentSize}em';
+                    return 'padding-$side:${indentSize}px';
                   }),
                 }))));
     telo.renderCustomWith = (DeltaInsertOp customOp, DeltaInsertOp? contextOp) {
@@ -61,7 +61,7 @@ class _PreviewState extends State<Preview> {
         return 'Unmanaged custom blot!';
       }
     };
-    // print(telo.convert());
+    print(telo.convert());
     return telo.convert();
   }
 
@@ -128,7 +128,7 @@ class _PreviewState extends State<Preview> {
                                       padding: const EdgeInsets.all(0),
                                       margin: Margins.zero),
                                   "p": Style(
-                                      padding: EdgeInsets.zero,
+                                      // padding: EdgeInsets.zero,
                                       margin: Margins.zero),
                                 },
                                 data: htmlData(state
@@ -186,7 +186,7 @@ class _PreviewState extends State<Preview> {
                               return const SizedBox();
                             },
                           )
-                        : SizedBox(),
+                        : const SizedBox(),
                     BlocBuilder<MakerBloc, MakerState>(
                       builder: (context, state) {
                         if (state is MakerLoaded) {
@@ -224,7 +224,7 @@ class _PreviewState extends State<Preview> {
                                                         color:
                                                             Colors.green[800],
                                                       ))
-                                                  : SizedBox(),
+                                                  : const SizedBox(),
                                               const Padding(
                                                   padding: EdgeInsets.all(4)),
                                               Expanded(
@@ -343,7 +343,7 @@ class _PreviewState extends State<Preview> {
                                                         child: Icon(Icons
                                                             .delete_outline),
                                                       ))
-                                                  : SizedBox(),
+                                                  : const SizedBox(),
                                               const Padding(
                                                   padding: EdgeInsets.all(4)),
                                             ],
@@ -384,7 +384,7 @@ class _PreviewState extends State<Preview> {
                               ),
                             ],
                           )
-                        : SizedBox()
+                        : const SizedBox()
                     // Container(
                     //     // color: Colors.red,
                     //     child: textViewBuilder(context, widget.controller.document)),

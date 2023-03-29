@@ -120,7 +120,7 @@ class FileService {
         allowedExtensions: ['qmzip'],
         dialogTitle: 'Save to');
     if (savedir != null) {
-      print(savedir + '.qmzip');
+      print('$savedir.qmzip');
       try {
         // print(projectDir.path);
         final zipFile = File(savedir);

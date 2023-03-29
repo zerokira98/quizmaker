@@ -48,7 +48,7 @@ class SettingButton extends StatelessWidget {
                                   } else {
                                     print(boolpr);
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
+                                        const SnackBar(
                                             content: Text(
                                                 'There\'s empty correct answer')));
                                   }
