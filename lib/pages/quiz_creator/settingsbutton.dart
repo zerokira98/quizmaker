@@ -46,7 +46,7 @@ class SettingButton extends StatelessWidget {
                                         BlocProvider.of<MakerBloc>(context)
                                             .state as MakerLoaded);
                                   } else {
-                                    print(boolpr);
+                                    // print(boolpr);
                                     ScaffoldMessenger.of(context).showSnackBar(
                                         const SnackBar(
                                             content: Text(

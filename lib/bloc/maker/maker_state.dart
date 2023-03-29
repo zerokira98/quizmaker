@@ -71,6 +71,9 @@ class MakerLoaded extends MakerState {
       if (correctSelected.isEmpty) {
         return false;
       }
+      if (element.text!.isEmpty) {
+        return false;
+      }
     }
     return true;
   }
@@ -134,6 +137,26 @@ class Question extends Equatable {
       return false;
     }
     return true;
+  }
+
+  int valdiColor() {
+    bool answerSelected = false;
+    bool textNotEmpty = false;
+    var getSelected = answers.where(
+      (element) {
+        return EncryptService().getAnswerBool(element.id);
+      },
+    );
+    answerSelected = getSelected.isNotEmpty;
+    textNotEmpty = text!.trim().isNotEmpty;
+    if (answerSelected && textNotEmpty) {
+      return 0xFF01cc01;
+    } else if (!answerSelected && !textNotEmpty) {
+      return 0xFF888888;
+    } else if (!answerSelected || !textNotEmpty) {
+      return 0xffd4c810;
+    }
+    return 0xFF888888;
   }
 
   @override

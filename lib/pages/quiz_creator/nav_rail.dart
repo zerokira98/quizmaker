@@ -48,9 +48,7 @@ class _NavRailState extends State<NavRail> {
                         children: [
                           Icon(
                             Icons.album_outlined,
-                            color: state.datas[i].valdi()
-                                ? Colors.green
-                                : Colors.grey,
+                            color: Color(state.datas[i].valdiColor()),
                           ),
                           const Padding(padding: EdgeInsets.all(2)),
                           Text('${i + 1}'),

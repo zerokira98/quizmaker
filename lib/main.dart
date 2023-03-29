@@ -10,7 +10,6 @@ import 'package:quizmaker/msc/themedata.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await Firebase.initializeApp(
       options: const FirebaseOptions(
           apiKey: "AIzaSyDebeOIE8-ePsMle-VqkSqoCTwpvo0L_pg",
@@ -43,7 +42,7 @@ void main() async {
         // )
       ],
       child: MaterialApp(
-          themeMode: ThemeMode.light,
+          themeMode: ThemeMode.dark,
           theme: ThemeDatas().lightTheme(),
           darkTheme: ThemeDatas().darkTheme(),
           home: const SplashScreen()),
@@ -63,7 +62,8 @@ class HomePage extends StatelessWidget {
         actions: [
           ElevatedButton(
               onPressed: () {
-                BlocProvider.of<AuthBloc>(context).add(const AppLogoutRequested());
+                BlocProvider.of<AuthBloc>(context)
+                    .add(const AppLogoutRequested());
               },
               child: const Text('LogOut'))
         ],

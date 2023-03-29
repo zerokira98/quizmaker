@@ -28,7 +28,7 @@ class _MainAppState extends State<MainApp> {
   textListener() {
     var plaintext = _controller.document.toPlainText();
     var jsonString = jsonEncode(_controller.document.toDelta().toJson());
-    print(jsonString);
+    print(plaintext);
     BlocProvider.of<MakerBloc>(context)
         .add(UpdateQuestion(plaintext, jsonString));
   }
@@ -158,25 +158,29 @@ class _MainAppState extends State<MainApp> {
                     return Container(
                       padding: const EdgeInsets.all(8.0),
                       child: Row(
+                        mainAxisSize: MainAxisSize.max,
+                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           NavRail(_controller),
                           Expanded(
                               // flex: 1,
                               child: TextEditor(_controller)),
                           MediaQuery.of(context).orientation.index == 1
-                              ? Expanded(
-                                  // flex: 1,
-                                  child: Padding(
-                                  padding: const EdgeInsets.only(
-                                      left: 14.0, right: 14),
-                                  child: Preview(_controller),
-                                ))
+                              ? Flexible(
+                                  fit: FlexFit.loose,
+                                  flex: 0,
+                                  child: Container(
+                                    padding: const EdgeInsets.only(
+                                        left: 14.0, right: 14),
+                                    child: Preview(_controller),
+                                  ))
                               : InkWell(
                                   onTap: () {
                                     Scaffold.of(context).openEndDrawer();
                                   },
                                   child: Container(
-                                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                                    margin: const EdgeInsets.symmetric(
+                                        horizontal: 4),
                                     width: 18,
                                     decoration: const BoxDecoration(
                                       gradient: LinearGradient(colors: [
