@@ -4,8 +4,10 @@
 
 import 'dart:convert';
 
+import 'package:archive/archive_io.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/foundation.dart';
+import 'package:path/path.dart';
 import 'package:quizmaker/repo/authrepo/authrepo.dart';
 import 'package:quizmaker/service/encrypt_service.dart';
 import 'package:quizmaker/service/file_service.dart';
@@ -19,6 +21,7 @@ class MakerBloc extends Bloc<MakerEvent, MakerState> {
     on<ReturntoInitial>(_backtoInitialstate);
     on<Initialize>(_initialize);
     on<InitiateFromFolder>(_initializeFromFolder);
+    on<InitiateFromZip>(_initializeFromZip);
     on<GoToNumber>(_goToNumber);
     on<SavetoFile>(_savetoFile);
     on<DeleteSuccess>(_deleteSuccess);
@@ -32,6 +35,14 @@ class MakerBloc extends Bloc<MakerEvent, MakerState> {
     on<SetRightAnswer>(_setRightAnswer);
     on<DeleteAnswer>(_deleteAnswer);
   }
+  _initializeFromZip(InitiateFromZip event, Emitter<MakerState> emit) async {
+    var projectDir =
+        join(await FileService().getQuizMakerProjectDir(), event.title);
+    await extractFileToDisk(event.zippath, projectDir);
+    // print('IM HERE');
+    add(InitiateFromFolder(folder: projectDir));
+  }
+
   _initializeFromFolder(
       InitiateFromFolder event, Emitter<MakerState> emit) async {
     if (state is MakerInitial) {

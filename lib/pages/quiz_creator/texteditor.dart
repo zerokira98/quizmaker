@@ -111,82 +111,78 @@ class _TextEditorState extends State<TextEditor> {
   Widget build(BuildContext context) {
     return Card(
       elevation: 1,
-      child: Container(
-        // padding: const EdgeInsets.all(8),
-        // decoration: BoxDecoration(border: Border.all()),
-        child: Column(children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                BlocBuilder<MakerBloc, MakerState>(
-                  builder: (context, state) {
-                    if (state is MakerLoaded) {
-                      String content = state.aSelectedIndex != null
-                          ? 'Answer ${state.aSelectedIndex}'
-                          : 'Question';
-                      return Card(
-                        elevation: 4,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(content),
-                        ),
-                      );
-                    }
-                    return Container();
+      child: Column(children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            children: [
+              BlocBuilder<MakerBloc, MakerState>(
+                builder: (context, state) {
+                  if (state is MakerLoaded) {
+                    String content = state.aSelectedIndex != null
+                        ? 'Answer ${state.aSelectedIndex! + 1}'
+                        : 'Question';
+                    return Card(
+                      elevation: 4,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(content),
+                      ),
+                    );
+                  }
+                  return Container();
+                },
+              ),
+              Expanded(child: Container()),
+              ElevatedButton.icon(
+                  onPressed: () {
+                    var state = (BlocProvider.of<MakerBloc>(context).state
+                        as MakerLoaded);
+                    BlocProvider.of<MakerBloc>(context)
+                        .add(DeleteQuestion(state.qSelectedIndex));
                   },
-                ),
-                Expanded(child: Container()),
-                ElevatedButton.icon(
-                    onPressed: () {
-                      var state = (BlocProvider.of<MakerBloc>(context).state
-                          as MakerLoaded);
-                      BlocProvider.of<MakerBloc>(context)
-                          .add(DeleteQuestion(state.qSelectedIndex));
-                    },
-                    icon: const Icon(Icons.delete),
-                    label: const Text('Delete Question'))
-              ],
-            ),
+                  icon: const Icon(Icons.delete),
+                  label: const Text('Delete Question'))
+            ],
           ),
-          Card(
-            child: q.QuillToolbar.basic(
-              customButtons: [
-                q.QuillCustomButton(
-                    icon: Icons.image,
-                    onTap: () {
-                      _addEditNote(context);
-                    }),
+        ),
+        Card(
+          child: q.QuillToolbar.basic(
+            customButtons: [
+              q.QuillCustomButton(
+                  icon: Icons.image,
+                  onTap: () {
+                    _addEditNote(context);
+                  }),
+            ],
+            controller: widget.controller,
+            showAlignmentButtons: false,
+            showDirection: false,
+            showBackgroundColorButton: false,
+            // showJustifyAlignment: false,
+            // showCenterAlignment: false,
+            showHeaderStyle: false,
+            showSearchButton: false,
+            showListCheck: false,
+            showCodeBlock: false,
+            // showIndent: false,
+          ),
+        ),
+        Expanded(
+            child: Card(
+          margin: const EdgeInsets.all(8),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: q.QuillEditor.basic(
+              embedBuilders: [
+                ImageEmbedBuildery(addEditNote: _addEditNote),
               ],
               controller: widget.controller,
-              showAlignmentButtons: false,
-              showDirection: false,
-              showBackgroundColorButton: false,
-              // showJustifyAlignment: false,
-              // showCenterAlignment: false,
-              showHeaderStyle: false,
-              showSearchButton: false,
-              showListCheck: false,
-              showCodeBlock: false,
-              // showIndent: false,
+              readOnly: false, // true for view only mode
             ),
           ),
-          Expanded(
-              child: Card(
-            margin: const EdgeInsets.all(8),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: q.QuillEditor.basic(
-                embedBuilders: [
-                  ImageEmbedBuildery(addEditNote: _addEditNote),
-                ],
-                controller: widget.controller,
-                readOnly: false, // true for view only mode
-              ),
-            ),
-          ))
-        ]),
-      ),
+        ))
+      ]),
     );
   }
 }
@@ -222,21 +218,18 @@ class ImageEmbedBuildery implements q.EmbedBuilder {
 
     return Material(
       color: Colors.transparent,
-      child: Container(
-        // margin: const EdgeInsets.symmetric(horizontal: 18),
-        child: GestureDetector(
-          child: Image.file(
-            File(path),
-            height: 100,
-            width: 100,
-          ),
-          // leading: const Icon(Icons.notes),
-          onTap: () => addEditNote(context, path: path),
-          // shape: RoundedRectangleBorder(
-          //   borderRadius: BorderRadius.circular(10),
-          //   side: const BorderSide(color: Colors.grey),
-          // ),
+      child: GestureDetector(
+        child: Image.file(
+          File(path),
+          height: 100,
+          width: 100,
         ),
+        // leading: const Icon(Icons.notes),
+        onTap: () => addEditNote(context, path: path),
+        // shape: RoundedRectangleBorder(
+        //   borderRadius: BorderRadius.circular(10),
+        //   side: const BorderSide(color: Colors.grey),
+        // ),
       ),
     );
   }

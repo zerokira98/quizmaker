@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quizmaker/bloc/maker/maker_bloc.dart';
 import 'package:quizmaker/bloc/maker/maker_state.dart';
+import 'package:quizmaker/repo/authrepo/authrepo.dart';
 import 'package:quizmaker/service/file_service.dart';
 
 class SettingButton extends StatelessWidget {
@@ -36,21 +37,36 @@ class SettingButton extends StatelessWidget {
                           Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: ElevatedButton(
-                                onPressed: () {
+                                onPressed: () async {
+                                  // print(RepositoryProvider.of<
+                                  //         AuthenticationRepository>(context)
+                                  //     .currentUser
+                                  //     .id);
+                                  // print('a');
                                   var boolpr =
                                       (BlocProvider.of<MakerBloc>(context).state
                                               as MakerLoaded)
                                           .valdi();
-                                  if (boolpr) {
+                                  if (boolpr == null) {
+                                    var saved = await FileService().saveToFile(
+                                        (BlocProvider.of<MakerBloc>(context)
+                                                .state as MakerLoaded)
+                                            .copywith(
+                                                makerUid: RepositoryProvider.of<
+                                                            AuthenticationRepository>(
+                                                        context)
+                                                    .currentUser
+                                                    .id));
+                                    if (!saved) return;
                                     FileService().createZip(
-                                        BlocProvider.of<MakerBloc>(context)
-                                            .state as MakerLoaded);
+                                        (BlocProvider.of<MakerBloc>(context)
+                                            .state as MakerLoaded));
                                   } else {
                                     // print(boolpr);
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
+                                        SnackBar(
                                             content: Text(
-                                                'There\'s empty correct answer')));
+                                                'There\'s ${boolpr.name}')));
                                   }
                                 },
                                 child: const Text('Export QuizData')),

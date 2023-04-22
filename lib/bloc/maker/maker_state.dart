@@ -5,6 +5,8 @@ import 'package:quizmaker/service/encrypt_service.dart';
 
 part 'maker_state.g.dart';
 
+enum QuestionInvalid { emptyQuestion, unselectedCorrect }
+
 abstract class MakerState extends Equatable {
   const MakerState();
 
@@ -50,18 +52,19 @@ class MakerLoaded extends MakerState {
   MakerLoaded copywith(
       {int? qSelectedIndex,
       int? aSelectedIndex,
+      String? makerUid,
       List<Question>? datas,
       bool? saveSuccess}) {
     return MakerLoaded(
         quizTitle: quizTitle,
         saveSuccess: saveSuccess ?? this.saveSuccess,
-        makerUid: makerUid,
+        makerUid: makerUid ?? this.makerUid,
         datas: datas ?? this.datas,
         qSelectedIndex: qSelectedIndex ?? this.qSelectedIndex,
         aSelectedIndex: aSelectedIndex ?? this.aSelectedIndex);
   }
 
-  bool valdi() {
+  QuestionInvalid? valdi() {
     for (var element in datas) {
       var correctSelected = element.answers.where(
         (element) {
@@ -69,13 +72,13 @@ class MakerLoaded extends MakerState {
         },
       );
       if (correctSelected.isEmpty) {
-        return false;
+        return QuestionInvalid.unselectedCorrect;
       }
-      if (element.text!.isEmpty) {
-        return false;
+      if (element.text!.trim().isEmpty) {
+        return QuestionInvalid.emptyQuestion;
       }
     }
-    return true;
+    return null;
   }
 
   MakerLoaded gotoQuestion(int qSelectedIndex) {
@@ -130,13 +133,16 @@ class Question extends Equatable {
         img: img);
   }
 
-  bool valdi() {
+  QuestionInvalid? valdi() {
     var selectCorrect = answers
         .where((element) => (EncryptService().getAnswerBool(element.id)));
     if (selectCorrect.length != 1) {
-      return false;
+      return QuestionInvalid.unselectedCorrect;
     }
-    return true;
+    if (text!.trim().isEmpty) {
+      return QuestionInvalid.emptyQuestion;
+    }
+    return null;
   }
 
   int valdiColor() {

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quizmaker/bloc/maker/maker_bloc.dart';
 import 'package:quizmaker/bloc/maker/maker_state.dart';
@@ -28,7 +29,7 @@ class _MainAppState extends State<MainApp> {
   textListener() {
     var plaintext = _controller.document.toPlainText();
     var jsonString = jsonEncode(_controller.document.toDelta().toJson());
-    print(plaintext);
+    // print(plaintext);
     BlocProvider.of<MakerBloc>(context)
         .add(UpdateQuestion(plaintext, jsonString));
   }
@@ -40,57 +41,63 @@ class _MainAppState extends State<MainApp> {
         BlocProvider.of<MakerBloc>(context).add(ReturntoInitial());
         return Future.value(true);
       },
-      child: Scaffold(
-        endDrawer: Drawer(
-          width: MediaQuery.of(context).size.width * 0.95,
-          child: Padding(
-            padding: const EdgeInsets.only(left: 14.0, right: 14),
-            child: Preview(_controller),
-          ),
-        ),
-        appBar: AppBar(
-          actions: [
-            const SettingButton(),
-            const Padding(padding: EdgeInsets.all(8)),
-            ElevatedButton.icon(
-                onPressed: () {
-                  // print('hei');
-                  BlocProvider.of<MakerBloc>(context).add(SavetoFile());
-                },
-                icon: const Icon(Icons.save),
-                label: const Text('Save')),
-            const Padding(padding: EdgeInsets.all(8)),
-          ],
-          title: BlocListener<MakerBloc, MakerState>(
-            listenWhen: (previous, current) {
-              if (current is MakerLoaded) {
-                if (current.saveSuccess != null) {
-                  return true;
-                }
-              }
-              return false;
-            },
-            listener: (context, state) {
-              if (state is MakerLoaded) {
-                if (state.saveSuccess != null) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text(
-                          state.saveSuccess! ? 'Success' : 'Error occured')));
-                }
-              }
-            },
-            child: BlocBuilder<MakerBloc, MakerState>(
-              builder: (context, state) {
-                if (state is MakerLoaded) {
-                  return Text(state.quizTitle);
-                }
-                return const Text('null');
-              },
+      child: CallbackShortcuts(
+        bindings: <ShortcutActivator, VoidCallback>{
+          LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyS):
+              () {
+            BlocProvider.of<MakerBloc>(context).add(SavetoFile());
+          },
+        },
+        child: Scaffold(
+          endDrawer: Drawer(
+            width: MediaQuery.of(context).size.width * 0.95,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 14.0, right: 14),
+              child: Preview(_controller),
             ),
           ),
-        ),
-        body: Container(
-          child: BlocListener<MakerBloc, MakerState>(
+          appBar: AppBar(
+            actions: [
+              const SettingButton(),
+              const Padding(padding: EdgeInsets.all(8)),
+              ElevatedButton.icon(
+                  onPressed: () {
+                    // print('hei');
+                    BlocProvider.of<MakerBloc>(context).add(SavetoFile());
+                  },
+                  icon: const Icon(Icons.save),
+                  label: const Text('Save')),
+              const Padding(padding: EdgeInsets.all(8)),
+            ],
+            title: BlocListener<MakerBloc, MakerState>(
+              listenWhen: (previous, current) {
+                if (current is MakerLoaded) {
+                  if (current.saveSuccess != null) {
+                    return true;
+                  }
+                }
+                return false;
+              },
+              listener: (context, state) {
+                if (state is MakerLoaded) {
+                  if (state.saveSuccess != null) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text(
+                            state.saveSuccess! ? 'Success' : 'Error occured')));
+                  }
+                }
+              },
+              child: BlocBuilder<MakerBloc, MakerState>(
+                builder: (context, state) {
+                  if (state is MakerLoaded) {
+                    return Text(state.quizTitle);
+                  }
+                  return const Text('null');
+                },
+              ),
+            ),
+          ),
+          body: BlocListener<MakerBloc, MakerState>(
             listenWhen: (prev, curr) {
               // print('prev:$prev');
               if (prev is MakerInitial) {

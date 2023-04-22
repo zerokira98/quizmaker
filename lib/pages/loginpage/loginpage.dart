@@ -104,32 +104,56 @@ class LoginForm extends StatelessWidget {
             );
         }
       },
-      child: Align(
-        alignment: const Alignment(0, -1 / 3),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18.0),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Image.asset(
-                //   'assets/bloc_logo_small.png',
-                //   height: 120,
-                // ),
-                const SizedBox(height: 16),
-                _EmailInput(),
-                const SizedBox(height: 8),
-                _PasswordInput(),
-                const SizedBox(height: 8),
-                _LoginButton(),
-                const SizedBox(height: 8),
-                // _GoogleLoginButton(),
-                const SizedBox(height: 4),
-                _SignUpButton(),
-              ],
+      child: Stack(
+        children: [
+          SizedBox(
+            height: double.infinity,
+            width: double.infinity,
+            child: Image.asset(
+              'res/bg1.jpg',
+              colorBlendMode: BlendMode.darken,
+              fit: BoxFit.cover,
             ),
           ),
-        ),
+          const Positioned(
+              bottom: 0,
+              right: 0,
+              child: Text(
+                  '<a href="http://www.freepik.com">Designed by coolvector / Freepik</a>')),
+          Container(
+            color: Theme.of(context).canvasColor.withOpacity(1),
+            child: AspectRatio(
+              aspectRatio: 9 / 16,
+              child: Align(
+                alignment: const Alignment(0, -1 / 3),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 18.0),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        // Image.asset(
+                        //   'assets/bloc_logo_small.png',
+                        //   height: 120,
+                        // ),
+                        const SizedBox(height: 16),
+                        _EmailInput(),
+                        const SizedBox(height: 8),
+                        _PasswordInput(),
+                        const SizedBox(height: 8),
+                        _LoginButton(),
+                        const SizedBox(height: 8),
+                        // _GoogleLoginButton(),
+                        const SizedBox(height: 4),
+                        _SignUpButton(),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -1,8 +1,11 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:archive/archive_io.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+// import 'package:path/path.dart';
 import 'package:quizmaker/bloc/maker/maker_bloc.dart';
 import 'package:quizmaker/pages/quiz_creator/mainapp.dart';
 import 'package:quizmaker/service/file_service.dart';
@@ -20,7 +23,92 @@ class HomePageCreate extends StatefulWidget {
 }
 
 class _HomePageCreateState extends State<HomePageCreate> {
-  Future<List> foldersProject = FileService().getListFoldersProject();
+  Future<List<Map>> foldersProject = FileService().getListFoldersProject();
+
+  void asyncButton(BuildContext context) {
+    FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['qmzip']).then((value) async {
+      if (value == null) return null;
+      var file = value.files.first;
+      // print(file.path);
+      final inputStream = InputFileStream(file.path!);
+      var decoder = ZipDecoder().decodeBuffer(inputStream);
+      var quizjsonfile = decoder.files.firstWhere((a) => a.name == 'quiz.json');
+      var jsonString = (const Utf8Decoder().convert(quizjsonfile.content));
+      var jsonmap = jsonDecode(jsonString);
+      List<Map> folders = await foldersProject;
+      // print(folders);
+      // print(jsonmap['quizTitle']);
+      for (var element in folders) {
+        if (element.containsValue(jsonmap['quizTitle'])) {
+          // print('Exist');
+          return {
+            "success": false,
+            "title": jsonmap['quizTitle'],
+            "e": "Project with same name exist.",
+            "path": file.path
+          };
+          // break;
+        }
+      }
+      return {
+        "success": true,
+        "path": file.path,
+        "title": jsonmap['quizTitle'],
+      };
+    }).then((value) {
+      if (value != null) {
+        if ((value['success'] as bool)) {
+          Navigator.push(context, MaterialPageRoute(
+            builder: (context) {
+              BlocProvider.of<MakerBloc>(context).add(InitiateFromZip(
+                  zippath: value['path'] as String, title: value['title']));
+              return const MainApp();
+            },
+          ));
+        }
+        if (!(value['success'] as bool)) {
+          showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: const Text('Caution'),
+                content: Text('${value['e'] as String} Replace it?'),
+                actions: [
+                  TextButton(
+                      style: const ButtonStyle(
+                          backgroundColor:
+                              MaterialStatePropertyAll(Colors.green)),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        Navigator.push(context, MaterialPageRoute(
+                          builder: (context) {
+                            BlocProvider.of<MakerBloc>(context).add(
+                                InitiateFromZip(
+                                    zippath: value['path'] as String,
+                                    title: value['title']));
+                            return const MainApp();
+                          },
+                        ));
+                      },
+                      child: const Text(
+                        'Confirm',
+                        style: TextStyle(color: Colors.white),
+                      )),
+                  TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Cancel')),
+                ],
+              );
+            },
+          );
+        }
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -103,10 +191,8 @@ class _HomePageCreateState extends State<HomePageCreate> {
                                     ),
                                   ),
                                 ),
-                                Flexible(
-                                  child: Text(
-                                      'Last Modified : ${snapshot.data![i]["last_modified"]}'),
-                                ),
+                                Text(
+                                    'Last Modified : ${snapshot.data![i]["last_modified"].toString().substring(0, snapshot.data![i]["last_modified"].toString().length - 4)}'),
                               ],
                             ),
                           );
@@ -118,14 +204,22 @@ class _HomePageCreateState extends State<HomePageCreate> {
                   },
                 ),
               ),
-              const Text('List of quiz project'),
-              Center(
-                child: ElevatedButton(
-                    onPressed: () async {
-                      var a = await FileService().getQuizProjectDir();
-                      launchUrlString('file://$a');
-                    },
-                    child: const Text('Open Quiz Project Folder')),
+              Container(
+                margin: EdgeInsets.symmetric(
+                    vertical: 8,
+                    horizontal: (MediaQuery.of(context).size.width / 6) + 8),
+                child: Row(
+                  children: [
+                    const Text('List of quiz project'),
+                    Expanded(child: Container()),
+                    ElevatedButton(
+                        onPressed: () async {
+                          var a = await FileService().getQuizMakerProjectDir();
+                          launchUrlString('file://$a');
+                        },
+                        child: const Text('Open Quiz Project Folder')),
+                  ],
+                ),
               ),
               const Padding(padding: EdgeInsets.all(8)),
               Center(
@@ -142,8 +236,7 @@ class _HomePageCreateState extends State<HomePageCreate> {
               Center(
                 child: ElevatedButton(
                     onPressed: () {
-                      FilePicker.platform.pickFiles(
-                          type: FileType.custom, allowedExtensions: ['qmzip']);
+                      asyncButton(context);
                     },
                     child: const Text('Import Created Quiz')),
               ),
