@@ -26,88 +26,102 @@ class _HomePageCreateState extends State<HomePageCreate> {
   Future<List<Map>> foldersProject = FileService().getListFoldersProject();
 
   void asyncButton(BuildContext context) {
-    FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['qmzip']).then((value) async {
-      if (value == null) return null;
-      var file = value.files.first;
-      // print(file.path);
-      final inputStream = InputFileStream(file.path!);
-      var decoder = ZipDecoder().decodeBuffer(inputStream);
-      var quizjsonfile = decoder.files.firstWhere((a) => a.name == 'quiz.json');
-      var jsonString = (const Utf8Decoder().convert(quizjsonfile.content));
-      var jsonmap = jsonDecode(jsonString);
-      List<Map> folders = await foldersProject;
-      // print(folders);
-      // print(jsonmap['quizTitle']);
-      for (var element in folders) {
-        if (element.containsValue(jsonmap['quizTitle'])) {
-          // print('Exist');
-          return {
-            "success": false,
-            "title": jsonmap['quizTitle'],
-            "e": "Project with same name exist.",
-            "path": file.path
-          };
-          // break;
+    // if (Platform.isAndroid) {
+    //   FilePicker.platform.pickFiles().then((value) async {
+    //     if (value == null) return null;
+    //   });
+    // }
+    if (!Platform.isWindows) {
+      FilePicker.platform
+          .pickFiles(
+        type: Platform.isWindows ? FileType.custom : FileType.any,
+        allowedExtensions: Platform.isWindows ? ['qmzip'] : null,
+      )
+          .then((value) async {
+        if (value == null) return null;
+
+        // return null;
+        var file = value.files.first;
+        if (!file.name.contains('qmzip')) return null;
+        // print(file.path);
+        final inputStream = InputFileStream(file.path!);
+        var decoder = ZipDecoder().decodeBuffer(inputStream);
+        var quizjsonfile =
+            decoder.files.firstWhere((a) => a.name == 'quiz.json');
+        var jsonString = (const Utf8Decoder().convert(quizjsonfile.content));
+        var jsonmap = jsonDecode(jsonString);
+        List<Map> folders = await foldersProject;
+        // print(folders);
+        // print(jsonmap['quizTitle']);
+        for (var element in folders) {
+          if (element.containsValue(jsonmap['quizTitle'])) {
+            // print('Exist');
+            return {
+              "success": false,
+              "title": jsonmap['quizTitle'],
+              "e": "Project with same name exist.",
+              "path": file.path
+            };
+            // break;
+          }
         }
-      }
-      return {
-        "success": true,
-        "path": file.path,
-        "title": jsonmap['quizTitle'],
-      };
-    }).then((value) {
-      if (value != null) {
-        if ((value['success'] as bool)) {
-          Navigator.push(context, MaterialPageRoute(
-            builder: (context) {
-              BlocProvider.of<MakerBloc>(context).add(InitiateFromZip(
-                  zippath: value['path'] as String, title: value['title']));
-              return const MainApp();
-            },
-          ));
+        return {
+          "success": true,
+          "path": file.path,
+          "title": jsonmap['quizTitle'],
+        };
+      }).then((value) {
+        if (value != null) {
+          if ((value['success'] as bool)) {
+            Navigator.push(context, MaterialPageRoute(
+              builder: (context) {
+                BlocProvider.of<MakerBloc>(context).add(InitiateFromZip(
+                    zippath: value['path'] as String, title: value['title']));
+                return const MainApp();
+              },
+            ));
+          }
+          if (!(value['success'] as bool)) {
+            showDialog(
+              context: context,
+              builder: (context) {
+                return AlertDialog(
+                  title: const Text('Caution'),
+                  content: Text('${value['e'] as String} Replace it?'),
+                  actions: [
+                    TextButton(
+                        style: const ButtonStyle(
+                            backgroundColor:
+                                MaterialStatePropertyAll(Colors.green)),
+                        onPressed: () {
+                          Navigator.pop(context);
+                          Navigator.push(context, MaterialPageRoute(
+                            builder: (context) {
+                              BlocProvider.of<MakerBloc>(context).add(
+                                  InitiateFromZip(
+                                      zippath: value['path'] as String,
+                                      title: value['title']));
+                              return const MainApp();
+                            },
+                          ));
+                        },
+                        child: const Text(
+                          'Confirm',
+                          style: TextStyle(color: Colors.white),
+                        )),
+                    TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Cancel')),
+                  ],
+                );
+              },
+            );
+          }
         }
-        if (!(value['success'] as bool)) {
-          showDialog(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                title: const Text('Caution'),
-                content: Text('${value['e'] as String} Replace it?'),
-                actions: [
-                  TextButton(
-                      style: const ButtonStyle(
-                          backgroundColor:
-                              MaterialStatePropertyAll(Colors.green)),
-                      onPressed: () {
-                        Navigator.pop(context);
-                        Navigator.push(context, MaterialPageRoute(
-                          builder: (context) {
-                            BlocProvider.of<MakerBloc>(context).add(
-                                InitiateFromZip(
-                                    zippath: value['path'] as String,
-                                    title: value['title']));
-                            return const MainApp();
-                          },
-                        ));
-                      },
-                      child: const Text(
-                        'Confirm',
-                        style: TextStyle(color: Colors.white),
-                      )),
-                  TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      child: const Text('Cancel')),
-                ],
-              );
-            },
-          );
-        }
-      }
-    });
+      });
+    }
   }
 
   @override

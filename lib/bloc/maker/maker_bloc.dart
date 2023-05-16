@@ -98,7 +98,7 @@ class MakerBloc extends Bloc<MakerEvent, MakerState> {
 
   _initialize(Initialize event, Emitter<MakerState> emit) async {
     try {
-      var projectDir = await FileService().createNewProjectDir(event.title);
+      await FileService().createNewProjectDir(event.title);
       final title = '${event.title}_0';
       var qId = await EncryptService().questionIdfromIndex(title);
       var questData = Question(id: qId, answers: const []);

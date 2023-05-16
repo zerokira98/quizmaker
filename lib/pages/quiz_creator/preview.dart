@@ -65,13 +65,6 @@ class _PreviewState extends State<Preview> {
     return telo.convert();
   }
 
-  CustomRenderMatcher classAndIdMatcher({
-    required String classToMatch,
-  }) =>
-      (context) =>
-          context.tree.element!.attributes["class"] != null &&
-          context.tree.element!.attributes["class"]!.contains(classToMatch);
-
   @override
   Widget build(BuildContext context) {
     // print(htmlData);
@@ -139,35 +132,33 @@ class _PreviewState extends State<Preview> {
                                               .datas[state.qSelectedIndex]
                                               .textJson ??
                                           ''),
-                                      customRenders: {
-                                        classAndIdMatcher(classToMatch: "imgs"):
-                                            CustomRender.widget(
-                                                widget: (p0, p1) => InkWell(
-                                                      onTap: () {
-                                                        showDialog(
-                                                          context: context,
-                                                          builder: (context) {
-                                                            return Dialog(
-                                                              child: Image.file(
-                                                                File(p0.tree
-                                                                        .attributes[
-                                                                    "src"]!),
-                                                                // height: 100,
-                                                              ),
-                                                            );
-                                                          },
-                                                        );
-                                                      },
+                                      extensions: [
+                                        TagExtension(
+                                          tagsToExtend: {'imgs'},
+                                          builder: (p0) {
+                                            return InkWell(
+                                              onTap: () {
+                                                showDialog(
+                                                  context: context,
+                                                  builder: (context) {
+                                                    return Dialog(
                                                       child: Image.file(
-                                                        File(p0.tree.attributes[
+                                                        File(p0.attributes[
                                                             "src"]!),
-                                                        height: 100,
+                                                        // height: 100,
                                                       ),
-                                                    ))
-
-                                        // classAndIdRender(
-                                        //     classToMatch: "imgs", ctx: context)
-                                      },
+                                                    );
+                                                  },
+                                                );
+                                              },
+                                              child: Image.file(
+                                                File(p0.attributes["src"]!),
+                                                height: 100,
+                                              ),
+                                            );
+                                          },
+                                        )
+                                      ],
                                     ),
                                   ),
                                 );
@@ -307,32 +298,39 @@ class _PreviewState extends State<Preview> {
                                                                             index]
                                                                         .text ??
                                                                     ''),
-                                                                customRenders: {
-                                                                  classAndIdMatcher(
-                                                                      classToMatch:
-                                                                          "imgs"): CustomRender
-                                                                      .widget(
-                                                                          widget: (p0, p1) =>
-                                                                              InkWell(
-                                                                                onTap: () {
-                                                                                  showDialog(
-                                                                                    context: context,
-                                                                                    builder: (context) {
-                                                                                      return Dialog(
-                                                                                        child: Image.file(
-                                                                                          File(p0.tree.attributes["src"]!),
-                                                                                          // height: 100,
-                                                                                        ),
-                                                                                      );
-                                                                                    },
-                                                                                  );
-                                                                                },
-                                                                                child: Image.file(
-                                                                                  File(p0.tree.attributes["src"]!),
-                                                                                  height: 100,
-                                                                                ),
-                                                                              ))
-                                                                },
+                                                                extensions: [
+                                                                  TagExtension(
+                                                                    tagsToExtend: {
+                                                                      "imgs"
+                                                                    },
+                                                                    builder: (p0) =>
+                                                                        InkWell(
+                                                                      onTap:
+                                                                          () {
+                                                                        showDialog(
+                                                                          context:
+                                                                              context,
+                                                                          builder:
+                                                                              (context) {
+                                                                            return Dialog(
+                                                                              child: Image.file(
+                                                                                File(p0.attributes["src"]!),
+                                                                                // height: 100,
+                                                                              ),
+                                                                            );
+                                                                          },
+                                                                        );
+                                                                      },
+                                                                      child: Image
+                                                                          .file(
+                                                                        File(p0.attributes[
+                                                                            "src"]!),
+                                                                        height:
+                                                                            100,
+                                                                      ),
+                                                                    ),
+                                                                  )
+                                                                ],
                                                               )),
                                                             ],
                                                           ),

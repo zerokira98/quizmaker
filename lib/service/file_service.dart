@@ -7,7 +7,7 @@ import 'dart:io';
 // ignore: depend_on_referenced_packages
 import 'package:archive/archive_io.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter_file_dialog/flutter_file_dialog.dart';
+// import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:quizmaker/bloc/maker/maker_state.dart';
@@ -138,10 +138,11 @@ class FileService {
           dialogTitle: 'Save to');
     }
     if (Platform.isAndroid) {
-      final params = SaveFileDialogParams(
-        fileName: '${state.quizTitle}.qmzip',
-      );
-      final savedir = await FlutterFileDialog.saveFile(params: params);
+      //TO DO: PLZ
+      // final params = SaveFileDialogParams(
+      //   fileName: '${state.quizTitle}.qmzip',
+      // );
+      // savedir = await FlutterFileDialog.saveFile(params: params);
       // print(savedir);
     }
     if (savedir != null) {

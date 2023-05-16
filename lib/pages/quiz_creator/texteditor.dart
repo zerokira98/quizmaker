@@ -5,7 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 // import 'package:flutter_html/flutter_html.dart';
-
+import 'package:path/path.dart' as p;
 import 'package:flutter_quill/flutter_quill.dart' as q;
 import 'package:quizmaker/bloc/maker/maker_bloc.dart';
 import 'package:quizmaker/bloc/maker/maker_state.dart';
@@ -80,17 +80,26 @@ class _TextEditorState extends State<TextEditor> {
                   : const SizedBox()
               : selectedUrl != null
                   ? Image.file(File(selectedUrl!))
-                  : Image.file(File(url)),
+                  : FutureBuilder(
+                      future: FileService().getQuizTakerProjectDir(),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          return Image.file(File(p.join(snapshot.data!, url)));
+                        }
+                        return const SizedBox();
+                      }),
         );
       }),
     );
 
     if (selectedUrl == null) return;
     if (selectedUrl != null) {
-      if (selectedUrl == url) return;
+      if (selectedUrl == url) return; //nedd fixx
       // final block = q.BlockEmbed.image(url);
+      var baseSrc = selectedUrl!
+          .replaceFirst(await FileService().getQuizTakerProjectDir(), '');
       final block = q.BlockEmbed.custom(
-        ImageBlockEmbedy(selectedUrl!),
+        ImageBlockEmbedy(baseSrc),
       );
       final controller = widget.controller;
       final index = controller.selection.baseOffset;
@@ -219,11 +228,18 @@ class ImageEmbedBuildery implements q.EmbedBuilder {
     return Material(
       color: Colors.transparent,
       child: GestureDetector(
-        child: Image.file(
-          File(path),
-          height: 100,
-          width: 100,
-        ),
+        child: FutureBuilder(
+            future: FileService().getQuizMakerProjectDir(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return Image.file(
+                  File(p.join(snapshot.data!, path)),
+                  height: 100,
+                  width: 100,
+                );
+              }
+              return const SizedBox();
+            }),
         // leading: const Icon(Icons.notes),
         onTap: () => addEditNote(context, path: path),
         // shape: RoundedRectangleBorder(

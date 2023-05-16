@@ -38,11 +38,6 @@ class SettingButton extends StatelessWidget {
                             padding: const EdgeInsets.all(8.0),
                             child: ElevatedButton(
                                 onPressed: () async {
-                                  // print(RepositoryProvider.of<
-                                  //         AuthenticationRepository>(context)
-                                  //     .currentUser
-                                  //     .id);
-                                  // print('a');
                                   var boolpr =
                                       (BlocProvider.of<MakerBloc>(context).state
                                               as MakerLoaded)
