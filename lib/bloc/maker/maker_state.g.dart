@@ -9,6 +9,7 @@ part of 'maker_state.dart';
 MakerLoaded _$MakerLoadedFromJson(Map<String, dynamic> json) => MakerLoaded(
       qSelectedIndex: json['qSelectedIndex'] as int,
       saveSuccess: json['saveSuccess'] as bool?,
+      makerUid: json['makerUid'] as String?,
       aSelectedIndex: json['aSelectedIndex'] as int?,
       quizTitle: json['quizTitle'] as String,
       datas: (json['datas'] as List<dynamic>)
@@ -19,6 +20,7 @@ MakerLoaded _$MakerLoadedFromJson(Map<String, dynamic> json) => MakerLoaded(
 Map<String, dynamic> _$MakerLoadedToJson(MakerLoaded instance) =>
     <String, dynamic>{
       'saveSuccess': instance.saveSuccess,
+      'makerUid': instance.makerUid,
       'quizTitle': instance.quizTitle,
       'qSelectedIndex': instance.qSelectedIndex,
       'aSelectedIndex': instance.aSelectedIndex,

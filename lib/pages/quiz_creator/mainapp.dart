@@ -1,13 +1,13 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quizmaker/bloc/maker/maker_bloc.dart';
 import 'package:quizmaker/bloc/maker/maker_state.dart';
+import 'package:quizmaker/pages/quiz_creator/settingsbutton.dart';
 import './nav_rail.dart';
 import './preview.dart';
-import 'package:quizmaker/service/file_service.dart';
 import './texteditor.dart';
 import 'package:flutter_quill/flutter_quill.dart' as q;
 
@@ -29,6 +29,7 @@ class _MainAppState extends State<MainApp> {
   textListener() {
     var plaintext = _controller.document.toPlainText();
     var jsonString = jsonEncode(_controller.document.toDelta().toJson());
+    // print(plaintext);
     BlocProvider.of<MakerBloc>(context)
         .add(UpdateQuestion(plaintext, jsonString));
   }
@@ -40,97 +41,63 @@ class _MainAppState extends State<MainApp> {
         BlocProvider.of<MakerBloc>(context).add(ReturntoInitial());
         return Future.value(true);
       },
-      child: Scaffold(
-        endDrawer: Drawer(
-          width: MediaQuery.of(context).size.width * 0.95,
-          child: Padding(
-            padding: const EdgeInsets.only(left: 14.0, right: 14),
-            child: Preview(_controller),
-          ),
-        ),
-        appBar: AppBar(
-          actions: [
-            ElevatedButton.icon(
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      return Dialog.fullscreen(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.max,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text(
-                              'Settings',
-                              textScaleFactor: 1.5,
-                            ),
-                            const Padding(padding: EdgeInsets.all(8)),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: ElevatedButton(
-                                  onPressed: () {
-                                    FileService().createZip(
-                                        BlocProvider.of<MakerBloc>(context)
-                                            .state as MakerLoaded);
-                                  },
-                                  child: const Text('Export QuizData')),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: ElevatedButton(
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                  child: const Text('Close')),
-                            )
-                          ],
-                        ),
-                      );
-                    },
-                  );
-                },
-                icon: const Icon(Icons.settings),
-                label: const Text('Settings')),
-            const Padding(padding: EdgeInsets.all(8)),
-            ElevatedButton.icon(
-                onPressed: () {
-                  // print('hei');
-                  BlocProvider.of<MakerBloc>(context).add(SavetoFile());
-                },
-                icon: const Icon(Icons.save),
-                label: const Text('Save')),
-            const Padding(padding: EdgeInsets.all(8)),
-          ],
-          title: BlocListener<MakerBloc, MakerState>(
-            listenWhen: (previous, current) {
-              if (current is MakerLoaded) {
-                if (current.saveSuccess != null) {
-                  return true;
-                }
-              }
-              return false;
-            },
-            listener: (context, state) {
-              if (state is MakerLoaded) {
-                if (state.saveSuccess != null) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text(
-                          state.saveSuccess! ? 'Success' : 'Error occured')));
-                }
-              }
-            },
-            child: BlocBuilder<MakerBloc, MakerState>(
-              builder: (context, state) {
-                if (state is MakerLoaded) {
-                  return Text(state.quizTitle);
-                }
-                return const Text('null');
-              },
+      child: CallbackShortcuts(
+        bindings: <ShortcutActivator, VoidCallback>{
+          LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyS):
+              () {
+            BlocProvider.of<MakerBloc>(context).add(SavetoFile());
+          },
+        },
+        child: Scaffold(
+          endDrawer: Drawer(
+            width: MediaQuery.of(context).size.width * 0.95,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 14.0, right: 14),
+              child: Preview(_controller),
             ),
           ),
-        ),
-        body: Container(
-          child: BlocListener<MakerBloc, MakerState>(
+          appBar: AppBar(
+            actions: [
+              const SettingButton(),
+              const Padding(padding: EdgeInsets.all(8)),
+              ElevatedButton.icon(
+                  onPressed: () {
+                    // print('hei');
+                    BlocProvider.of<MakerBloc>(context).add(SavetoFile());
+                  },
+                  icon: const Icon(Icons.save),
+                  label: const Text('Save')),
+              const Padding(padding: EdgeInsets.all(8)),
+            ],
+            title: BlocListener<MakerBloc, MakerState>(
+              listenWhen: (previous, current) {
+                if (current is MakerLoaded) {
+                  if (current.saveSuccess != null) {
+                    return true;
+                  }
+                }
+                return false;
+              },
+              listener: (context, state) {
+                if (state is MakerLoaded) {
+                  if (state.saveSuccess != null) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text(
+                            state.saveSuccess! ? 'Success' : 'Error occured')));
+                  }
+                }
+              },
+              child: BlocBuilder<MakerBloc, MakerState>(
+                builder: (context, state) {
+                  if (state is MakerLoaded) {
+                    return Text(state.quizTitle);
+                  }
+                  return const Text('null');
+                },
+              ),
+            ),
+          ),
+          body: BlocListener<MakerBloc, MakerState>(
             listenWhen: (prev, curr) {
               // print('prev:$prev');
               if (prev is MakerInitial) {
@@ -198,20 +165,45 @@ class _MainAppState extends State<MainApp> {
                     return Container(
                       padding: const EdgeInsets.all(8.0),
                       child: Row(
+                        mainAxisSize: MainAxisSize.max,
+                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           NavRail(_controller),
                           Expanded(
                               // flex: 1,
                               child: TextEditor(_controller)),
-                          Platform.isWindows
-                              ? Expanded(
-                                  // flex: 1,
-                                  child: Padding(
-                                  padding: const EdgeInsets.only(
-                                      left: 14.0, right: 14),
-                                  child: Preview(_controller),
-                                ))
-                              : const SizedBox(),
+                          MediaQuery.of(context).orientation.index == 1
+                              ? Flexible(
+                                  fit: FlexFit.loose,
+                                  flex: 0,
+                                  child: Container(
+                                    padding: const EdgeInsets.only(
+                                        left: 14.0, right: 14),
+                                    child: Preview(_controller),
+                                  ))
+                              : InkWell(
+                                  onTap: () {
+                                    Scaffold.of(context).openEndDrawer();
+                                  },
+                                  child: Container(
+                                    margin: const EdgeInsets.symmetric(
+                                        horizontal: 4),
+                                    width: 18,
+                                    decoration: const BoxDecoration(
+                                      gradient: LinearGradient(colors: [
+                                        Colors.transparent,
+                                        Colors.transparent,
+                                        Colors.blueGrey,
+                                        Colors.blueGrey,
+                                        Colors.transparent,
+                                      ]),
+                                    ),
+                                    child: const Center(
+                                        child: Icon(
+                                      Icons.arrow_left,
+                                    )),
+                                  ),
+                                ),
                         ],
                       ),
                     );

@@ -64,3 +64,9 @@ class InitiateFromFolder extends MakerEvent {
   final String folder;
   InitiateFromFolder({required this.folder});
 }
+
+class InitiateFromZip extends MakerEvent {
+  final String zippath;
+  final String title;
+  InitiateFromZip({required this.zippath, required this.title});
+}

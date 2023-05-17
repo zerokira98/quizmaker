@@ -5,7 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 // import 'package:flutter_html/flutter_html.dart';
-
+import 'package:path/path.dart' as p;
 import 'package:flutter_quill/flutter_quill.dart' as q;
 import 'package:quizmaker/bloc/maker/maker_bloc.dart';
 import 'package:quizmaker/bloc/maker/maker_state.dart';
@@ -44,6 +44,7 @@ class _TextEditorState extends State<TextEditor> {
   Future<void> _addEditNote(BuildContext context, {String? path}) async {
     final isEditing = path != null;
     String url = path ?? '';
+    String? selectedUrl;
     await showDialog(
       context: context,
       builder: (context) => StatefulBuilder(builder: (context, setstate) {
@@ -51,7 +52,8 @@ class _TextEditorState extends State<TextEditor> {
           titlePadding: const EdgeInsets.all(16),
           actions: [
             ElevatedButton(
-                onPressed: () => Navigator.pop(context), child: const Text('Done'))
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Done'))
           ],
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -63,7 +65,7 @@ class _TextEditorState extends State<TextEditor> {
                       as MakerLoaded);
                   var a = await FilePicker.platform.pickFiles();
                   if (a != null) {
-                    url = await FileService()
+                    selectedUrl = await FileService()
                         .savePictToProjectDir(a, state, pictpath: path);
                     setstate(() {});
                   }
@@ -72,28 +74,45 @@ class _TextEditorState extends State<TextEditor> {
               )
             ],
           ),
-          content: url.isEmpty ? const SizedBox() : Image.file(File(url)),
+          content: url.isEmpty
+              ? selectedUrl != null
+                  ? Image.file(File(selectedUrl!))
+                  : const SizedBox()
+              : selectedUrl != null
+                  ? Image.file(File(selectedUrl!))
+                  : FutureBuilder(
+                      future: FileService().getQuizTakerProjectDir(),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          return Image.file(File(p.join(snapshot.data!, url)));
+                        }
+                        return const SizedBox();
+                      }),
         );
       }),
     );
 
-    if (url.isEmpty) return;
+    if (selectedUrl == null) return;
+    if (selectedUrl != null) {
+      if (selectedUrl == url) return; //nedd fixx
+      // final block = q.BlockEmbed.image(url);
+      var baseSrc = selectedUrl!
+          .replaceFirst(await FileService().getQuizTakerProjectDir(), '');
+      final block = q.BlockEmbed.custom(
+        ImageBlockEmbedy(baseSrc),
+      );
+      final controller = widget.controller;
+      final index = controller.selection.baseOffset;
+      final length = controller.selection.extentOffset - index;
 
-    // final block = q.BlockEmbed.image(url);
-    final block = q.BlockEmbed.custom(
-      ImageBlockEmbedy(url),
-    );
-    final controller = widget.controller;
-    final index = controller.selection.baseOffset;
-    final length = controller.selection.extentOffset - index;
-
-    if (isEditing) {
-      final offset =
-          q.getEmbedNode(controller, controller.selection.start).value;
-      controller.replaceText(offset.offset, 1, block,
-          TextSelection.collapsed(offset: offset.offset));
-    } else {
-      controller.replaceText(index, length, block, null);
+      if (isEditing) {
+        final offset =
+            q.getEmbedNode(controller, controller.selection.start).offset;
+        controller.replaceText(
+            offset, 1, block, TextSelection.collapsed(offset: offset));
+      } else {
+        controller.replaceText(index, length, block, null);
+      }
     }
   }
 
@@ -101,82 +120,78 @@ class _TextEditorState extends State<TextEditor> {
   Widget build(BuildContext context) {
     return Card(
       elevation: 1,
-      child: Container(
-        // padding: const EdgeInsets.all(8),
-        // decoration: BoxDecoration(border: Border.all()),
-        child: Column(children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                BlocBuilder<MakerBloc, MakerState>(
-                  builder: (context, state) {
-                    if (state is MakerLoaded) {
-                      String content = state.aSelectedIndex != null
-                          ? 'Answer ${state.aSelectedIndex}'
-                          : 'Question';
-                      return Card(
-                        elevation: 4,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(content),
-                        ),
-                      );
-                    }
-                    return Container();
+      child: Column(children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            children: [
+              BlocBuilder<MakerBloc, MakerState>(
+                builder: (context, state) {
+                  if (state is MakerLoaded) {
+                    String content = state.aSelectedIndex != null
+                        ? 'Answer ${state.aSelectedIndex! + 1}'
+                        : 'Question';
+                    return Card(
+                      elevation: 4,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(content),
+                      ),
+                    );
+                  }
+                  return Container();
+                },
+              ),
+              Expanded(child: Container()),
+              ElevatedButton.icon(
+                  onPressed: () {
+                    var state = (BlocProvider.of<MakerBloc>(context).state
+                        as MakerLoaded);
+                    BlocProvider.of<MakerBloc>(context)
+                        .add(DeleteQuestion(state.qSelectedIndex));
                   },
-                ),
-                Expanded(child: Container()),
-                ElevatedButton.icon(
-                    onPressed: () {
-                      var state = (BlocProvider.of<MakerBloc>(context).state
-                          as MakerLoaded);
-                      BlocProvider.of<MakerBloc>(context)
-                          .add(DeleteQuestion(state.qSelectedIndex));
-                    },
-                    icon: const Icon(Icons.delete),
-                    label: const Text('Delete Question'))
-              ],
-            ),
+                  icon: const Icon(Icons.delete),
+                  label: const Text('Delete Question'))
+            ],
           ),
-          Card(
-            child: q.QuillToolbar.basic(
-              customButtons: [
-                q.QuillCustomButton(
-                    icon: Icons.image,
-                    onTap: () {
-                      _addEditNote(context);
-                    }),
+        ),
+        Card(
+          child: q.QuillToolbar.basic(
+            customButtons: [
+              q.QuillCustomButton(
+                  icon: Icons.image,
+                  onTap: () {
+                    _addEditNote(context);
+                  }),
+            ],
+            controller: widget.controller,
+            showAlignmentButtons: false,
+            showDirection: false,
+            showBackgroundColorButton: false,
+            // showJustifyAlignment: false,
+            // showCenterAlignment: false,
+            showHeaderStyle: false,
+            showSearchButton: false,
+            showListCheck: false,
+            showCodeBlock: false,
+            // showIndent: false,
+          ),
+        ),
+        Expanded(
+            child: Card(
+          margin: const EdgeInsets.all(8),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: q.QuillEditor.basic(
+              embedBuilders: [
+                ImageEmbedBuildery(addEditNote: _addEditNote),
               ],
               controller: widget.controller,
-              showAlignmentButtons: false,
-              showDirection: false,
-              showBackgroundColorButton: false,
-              // showJustifyAlignment: false,
-              // showCenterAlignment: false,
-              showHeaderStyle: false,
-              showSearchButton: false,
-              showListCheck: false,
-              showCodeBlock: false,
-              // showIndent: false,
+              readOnly: false, // true for view only mode
             ),
           ),
-          Expanded(
-              child: Card(
-            margin: const EdgeInsets.all(8),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: q.QuillEditor.basic(
-                embedBuilders: [
-                  ImageEmbedBuildery(addEditNote: _addEditNote),
-                ],
-                controller: widget.controller,
-                readOnly: false, // true for view only mode
-              ),
-            ),
-          ))
-        ]),
-      ),
+        ))
+      ]),
     );
   }
 }
@@ -206,27 +221,40 @@ class ImageEmbedBuildery implements q.EmbedBuilder {
     q.QuillController controller,
     q.Embed node,
     bool readOnly,
+    bool inline,
   ) {
     final path = (node.value.data);
 
     return Material(
       color: Colors.transparent,
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 18),
-        child: ListTile(
-          title: Image.file(
-            File(path),
-            height: 100,
-            width: 100,
-          ),
-          // leading: const Icon(Icons.notes),
-          onTap: () => addEditNote(context, path: path),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-            side: const BorderSide(color: Colors.grey),
-          ),
-        ),
+      child: GestureDetector(
+        child: FutureBuilder(
+            future: FileService().getQuizMakerProjectDir(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return Image.file(
+                  File(p.join(snapshot.data!, path)),
+                  height: 100,
+                  width: 100,
+                );
+              }
+              return const SizedBox();
+            }),
+        // leading: const Icon(Icons.notes),
+        onTap: () => addEditNote(context, path: path),
+        // shape: RoundedRectangleBorder(
+        //   borderRadius: BorderRadius.circular(10),
+        //   side: const BorderSide(color: Colors.grey),
+        // ),
       ),
     );
   }
+
+  @override
+  WidgetSpan buildWidgetSpan(Widget widget) {
+    return WidgetSpan(child: widget);
+  }
+
+  @override
+  bool get expanded => false;
 }

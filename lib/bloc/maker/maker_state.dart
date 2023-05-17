@@ -1,8 +1,11 @@
 import 'package:equatable/equatable.dart';
 // ignore: depend_on_referenced_packages
 import 'package:json_annotation/json_annotation.dart';
+import 'package:quizmaker/service/encrypt_service.dart';
 
 part 'maker_state.g.dart';
+
+enum QuestionInvalid { emptyQuestion, unselectedCorrect }
 
 abstract class MakerState extends Equatable {
   const MakerState();
@@ -26,7 +29,10 @@ class MakerError extends MakerState {
 @JsonSerializable()
 class MakerLoaded extends MakerState {
   final bool? saveSuccess;
+  final String? makerUid;
   final String quizTitle;
+
+  ///Selected question index
   final int qSelectedIndex;
   final int? aSelectedIndex;
   final List<Question> datas;
@@ -34,6 +40,7 @@ class MakerLoaded extends MakerState {
   const MakerLoaded(
       {required this.qSelectedIndex,
       this.saveSuccess,
+      this.makerUid,
       this.aSelectedIndex,
       required this.quizTitle,
       required this.datas});
@@ -45,14 +52,33 @@ class MakerLoaded extends MakerState {
   MakerLoaded copywith(
       {int? qSelectedIndex,
       int? aSelectedIndex,
+      String? makerUid,
       List<Question>? datas,
       bool? saveSuccess}) {
     return MakerLoaded(
         quizTitle: quizTitle,
         saveSuccess: saveSuccess ?? this.saveSuccess,
+        makerUid: makerUid ?? this.makerUid,
         datas: datas ?? this.datas,
         qSelectedIndex: qSelectedIndex ?? this.qSelectedIndex,
         aSelectedIndex: aSelectedIndex ?? this.aSelectedIndex);
+  }
+
+  QuestionInvalid? valdi() {
+    for (var element in datas) {
+      var correctSelected = element.answers.where(
+        (element) {
+          return EncryptService().getAnswerBool(element.id);
+        },
+      );
+      if (correctSelected.isEmpty) {
+        return QuestionInvalid.unselectedCorrect;
+      }
+      if (element.text!.trim().isEmpty) {
+        return QuestionInvalid.emptyQuestion;
+      }
+    }
+    return null;
   }
 
   MakerLoaded gotoQuestion(int qSelectedIndex) {
@@ -105,6 +131,38 @@ class Question extends Equatable {
         textJson: textJson ?? this.textJson,
         mp3: mp3 ?? this.mp3,
         img: img);
+  }
+
+  QuestionInvalid? valdi() {
+    var selectCorrect = answers
+        .where((element) => (EncryptService().getAnswerBool(element.id)));
+    if (selectCorrect.length != 1) {
+      return QuestionInvalid.unselectedCorrect;
+    }
+    if (text!.trim().isEmpty) {
+      return QuestionInvalid.emptyQuestion;
+    }
+    return null;
+  }
+
+  int valdiColor() {
+    bool answerSelected = false;
+    bool textNotEmpty = false;
+    var getSelected = answers.where(
+      (element) {
+        return EncryptService().getAnswerBool(element.id);
+      },
+    );
+    answerSelected = getSelected.isNotEmpty;
+    textNotEmpty = text!.trim().isNotEmpty;
+    if (answerSelected && textNotEmpty) {
+      return 0xFF01cc01;
+    } else if (!answerSelected && !textNotEmpty) {
+      return 0xFF888888;
+    } else if (!answerSelected || !textNotEmpty) {
+      return 0xffd4c810;
+    }
+    return 0xFF888888;
   }
 
   @override

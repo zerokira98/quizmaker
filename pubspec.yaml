@@ -35,9 +35,9 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
-  flutter_quill: ^7.0.1
-  vsc_quill_delta_to_html: ^1.0.1+1
-  flutter_html: ^3.0.0-alpha.6
+  flutter_quill: 7.0.3
+  vsc_quill_delta_to_html: ^1.0.2
+  flutter_html: ^3.0.0-beta.1
   flutter_bloc: ^8.1.2
   bloc: ^8.1.1
   encrypt: ^5.0.1
@@ -49,21 +49,24 @@ dependencies:
   string_validator: ^1.0.0
   photo_view: ^0.14.0
   image_picker: ^0.8.6+4
-  flex_color_scheme: ^6.1.2
+  flex_color_scheme: ^7.0.5
   google_fonts: ^4.0.3
   flutter_archive: ^5.0.0
   archive: ^3.3.6
-  # firebase_auth: ^4.3.0
+  
   google_sign_in: ^6.0.2
-  firebase_auth_desktop: ^1.0.2
-  taker:
-    path: taker
+  # taker:
+  #   path: taker
   change_app_package_name: ^1.1.0
-  formz: ^0.5.0+1
-  firebase_core_desktop: ^1.0.2
+  formz: ^0.6.0  
+  firebase_auth_desktop: ^1.0.2
   firebase_auth: ^3.11.2
+  firebase_core_desktop: ^1.0.2
   firebase_core: ^1.24.0
   awesome_icons: ^1.1.0
+  url_launcher: ^6.1.10
+  flutter_file_dialog: ^3.0.0
+  animations: ^2.0.7
   # flutter_launcher_icons: ^0.12.0
   # flutter_quill_extensions:
   #        path: ./flutter_quill_extensions
@@ -81,7 +84,7 @@ dev_dependencies:
   flutter_lints: ^2.0.0
   json_serializable: ^6.6.1
   build_runner: ^2.3.3
-  flutter_launcher_icons: ^0.12.0
+  # flutter_launcher_icons: ^0.13.1
 
 flutter_icons:
   android: "launcher_icon"
@@ -103,8 +106,9 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
+  assets:
+    - res/bg1.jpg
+    - res/bg2.jpg
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
