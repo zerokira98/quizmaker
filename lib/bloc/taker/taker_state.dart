@@ -1,5 +1,13 @@
-part of 'taker_bloc.dart';
+import 'package:equatable/equatable.dart';
 
+// ignore: depend_on_referenced_packages
+import 'package:json_annotation/json_annotation.dart';
+import 'package:quizmaker/bloc/maker/maker_state.dart';
+
+part 'taker_state.g.dart';
+
+// part of 'taker_bloc.dart';
+@JsonSerializable()
 class TakerState extends Equatable {
   final String path;
   final int selectedQuestionIndex;
@@ -28,6 +36,11 @@ class TakerState extends Equatable {
         path: path ?? this.path);
   }
 
+  factory TakerState.fromJson(Map<String, dynamic> json) =>
+      _$TakerStateFromJson(json);
+
+  Map<String, dynamic> toJson() => _$TakerStateToJson(this);
+
   @override
   List<Object> get props =>
       [selectedQuestionIndex, maxQuestion, path, quizdata!, selectedAnswer!];
@@ -40,6 +53,7 @@ class TakerStateInitial extends Equatable {
   List<Object> get props => [];
 }
 
+@JsonSerializable()
 class SelectedAnswer extends Equatable {
   final String? selectedId;
   final String questionId;
@@ -51,6 +65,11 @@ class SelectedAnswer extends Equatable {
         questionId: questionId ?? this.questionId,
         selectedId: selectedId ?? this.selectedId);
   }
+
+  factory SelectedAnswer.fromJson(Map<String, dynamic> json) =>
+      _$SelectedAnswerFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SelectedAnswerToJson(this);
 
   @override
   String toString() {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quizmaker/bloc/taker/taker_bloc.dart';
+import 'package:quizmaker/bloc/taker/taker_state.dart';
 import 'package:quizmaker/pages/quiz_take/cubit/navrail_cubit.dart';
 
 class TakeNavRail extends StatefulWidget {
@@ -83,10 +84,18 @@ class _TakeNavRailState extends State<TakeNavRail> {
           state.titles.length,
           (index) => InkWell(
                 // isSelected: true,
-                child: Card(
-                  elevation: index == state.selectedIndex ? 4 : 1,
-                  shadowColor:
-                      index == state.selectedIndex ? Colors.white : Colors.grey,
+                child: Container(
+                  margin: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    border: index == state.selectedIndex
+                        ? Border.all(color: Theme.of(context).primaryColorLight)
+                        : null,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  // elevation: index == state.selectedIndex ? 4 : 1,
+                  // shadowColor:
+                  //     index == state.selectedIndex ? Colors.white : Colors.grey,
                   child: Padding(
                     padding: const EdgeInsets.all(2.0),
                     child: Column(
@@ -161,7 +170,8 @@ class _TakeNavRailState extends State<TakeNavRail> {
                                   BlocProvider.of<NavrailCubit>(context)
                                       .expand();
                                 },
-                                child: const Icon(Icons.arrow_circle_left_outlined))
+                                child: const Icon(
+                                    Icons.arrow_circle_left_outlined))
                         ]),
                   )),
                 ],
@@ -177,10 +187,10 @@ class _TakeNavRailState extends State<TakeNavRail> {
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 450),
                   transitionBuilder: (child, animation) => SlideTransition(
-                    position:
-                        Tween<Offset>(begin: const Offset(-1, 0), end: const Offset(0, 0))
-                            .animate(CurvedAnimation(
-                                parent: animation, curve: Curves.easeOutQuad)),
+                    position: Tween<Offset>(
+                            begin: const Offset(-1, 0), end: const Offset(0, 0))
+                        .animate(CurvedAnimation(
+                            parent: animation, curve: Curves.easeOutQuad)),
                     child: FadeTransition(
                       opacity: animation,
                       child: child,

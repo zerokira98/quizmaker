@@ -2,12 +2,13 @@ import 'dart:convert';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+// ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as p;
 import 'package:quizmaker/bloc/maker/maker_state.dart';
 import 'package:quizmaker/service/file_service.dart';
+import './taker_state.dart';
 
 part 'taker_event.dart';
-part 'taker_state.dart';
 
 class TakerBloc extends Bloc<TakerEvent, TakerState> {
   TakerBloc()

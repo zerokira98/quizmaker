@@ -46,7 +46,7 @@ class NavrailCubit extends Cubit<NavrailState> {
   }
 
   setAnswered(int index) {
-    List<int> newlist = List.castFrom(state.answerSelected);
+    List<int> newlist = List.from(state.answerSelected);
     if (!state.answerSelected.contains(index)) newlist.add(index);
     emit(state.copywith(answerSelected: newlist));
   }

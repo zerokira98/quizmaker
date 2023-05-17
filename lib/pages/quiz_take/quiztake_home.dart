@@ -23,19 +23,16 @@ class QuizTakeHome extends StatelessWidget {
       body: Center(
           child: ElevatedButton(
               onPressed: () async {
-                print('telo');
                 FilePicker.platform
                     .pickFiles(
-                        // allowedExtensions:
-                        //     Platform.isWindows ? ["qmzip"] : null,
-                        // type:
-                        //     Platform.isWindows ? FileType.custom : FileType.any
-                        )
+                        allowedExtensions:
+                            Platform.isWindows ? ["qmzip"] : null,
+                        type:
+                            Platform.isWindows ? FileType.custom : FileType.any)
                     .then((value) async {
                   if (value == null) return;
                   var file = value.files.first;
 
-                  print("aa${file.bytes}");
                   final inputStream = InputFileStream(file.path!);
                   var decoder = ZipDecoder().decodeBuffer(inputStream);
                   var quizjsonfile =
@@ -48,7 +45,6 @@ class QuizTakeHome extends StatelessWidget {
                   await extractFileToDisk(file.path!, dir);
                   //to do:shuffle Question
                   var quizfile = File(p.join(dir, 'quiz.json'));
-
                   var jsonString2 = await quizfile.readAsString();
                   var jsonmap2 = jsonDecode(jsonString2);
                   var thestate = MakerLoaded.fromJson(jsonmap2);
@@ -57,12 +53,15 @@ class QuizTakeHome extends StatelessWidget {
                   if (Platform.isAndroid) {
                     newdatas = thestate.datas.map((e) {
                       List telokntl = jsonDecode(e.textJson!);
+
+                      ///Answer manipulation
                       List<Answer> newA = e.answers.map((e2) {
-                        // print(e2.text);
-                        // print('0');
-                        if (e2.text! is! List) return e2;
+                        // print("e3${e2.text!.trim().isEmpty}");
+                        if (e2.text!.trim().isEmpty) return e2;
+                        if (jsonDecode(e2.text!) is! List) return e2;
                         List aText = jsonDecode(e2.text!);
                         aText = aText.map((e3) {
+                          // print("e3${e3['insert']}");
                           if (e3['insert'] is Map) {
                             String imgdir = jsonDecode(
                                 (e3['insert'] as Map)['custom'])['imgs'];
@@ -85,6 +84,7 @@ class QuizTakeHome extends StatelessWidget {
                         }).toList();
                         return e2.copywith(text: jsonEncode(aText));
                       }).toList();
+
                       List newTextJson = telokntl.map((e2) {
                         if (e2['insert'] is Map) {
                           String imgdir = jsonDecode(
@@ -107,17 +107,20 @@ class QuizTakeHome extends StatelessWidget {
                         }
                       }).toList();
                       newA.shuffle();
+                      // print("newa:$newA");
                       return e.copywith(
                           textJson: jsonEncode(newTextJson), answers: newA);
                     }).toList();
                   }
                   // print(newdatas[2].textJson);
                   // List<Question> datalist = List.castFrom(newdatas);
-                  newdatas = thestate.datas.map((e) {
-                    List<Answer> newA = List.castFrom(e.answers);
-                    newA.shuffle();
-                    return e.copywith(answers: newA);
-                  }).toList();
+                  if (Platform.isWindows) {
+                    newdatas = newdatas.map((e) {
+                      List<Answer> newA = List.castFrom(e.answers);
+                      newA.shuffle();
+                      return e.copywith(answers: newA);
+                    }).toList();
+                  }
                   newdatas.shuffle();
                   await quizfile.writeAsString(
                       jsonEncode(thestate.copywith(datas: newdatas).toJson()));
@@ -147,7 +150,7 @@ class QuizTakeHome extends StatelessWidget {
                     },
                   );
                 }, onError: (e) {
-                  print("error$e");
+                  debugPrint("error$e");
                 });
               },
               child: const Text('Open ".qmzip" Quiz file'))),
