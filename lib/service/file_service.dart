@@ -7,6 +7,7 @@ import 'dart:io';
 // ignore: depend_on_referenced_packages
 import 'package:archive/archive_io.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 // import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
@@ -15,6 +16,12 @@ import 'package:quizmaker/service/encrypt_service.dart';
 
 class FileService {
   FileService();
+  removeMakerProject(String title) async {
+    var appDir = await getQuizMakerProjectDir();
+    Directory projectDir = Directory(path.join(appDir, title));
+    projectDir.existsSync() ? projectDir.deleteSync(recursive: true) : null;
+  }
+
   Future<List<Map>> getListFoldersProject() async {
     var appDir = await getQuizMakerProjectDir();
     Directory projectDir = Directory(path.join(appDir));
@@ -73,6 +80,7 @@ class FileService {
 
       var projectDir = Directory(path.join(appDir, state.quizTitle));
       // Directory('${appDir.path}\\project\\${state.quizTitle}\\');
+      // FilePicker.platform.saveFile();
       var file = File(path.join(projectDir.path, 'quiz.json'));
       // (file.exists());
       await file.writeAsString(jsonEncode(state.toJson()));
@@ -136,33 +144,44 @@ class FileService {
           type: FileType.custom,
           allowedExtensions: ['qmzip'],
           dialogTitle: 'Save to');
+      if (savedir != null) {
+        // print('$savedir.qmzip');
+        try {
+          // print(projectDir.path);
+          final zipFile = File(savedir);
+
+          var projectDir = await Directory(path.join(
+            appDir,
+            state.quizTitle,
+          )).create();
+
+          var encoder = ZipFileEncoder();
+          encoder.create(zipFile.path);
+          await encoder.addDirectory(projectDir, includeDirName: false);
+          encoder.close();
+        } catch (e) {
+          throw Exception(e);
+        }
+      }
     }
     if (Platform.isAndroid) {
       //TO DO: PLZ
-      // final params = SaveFileDialogParams(
-      //   fileName: '${state.quizTitle}.qmzip',
-      // );
-      // savedir = await FlutterFileDialog.saveFile(params: params);
+      var projectDir = Directory(path.join(
+        appDir,
+        state.quizTitle,
+      ));
+      final zipFile = File(path.join(appDir, 'export.qmzip'));
+      var encoder = ZipFileEncoder();
+      encoder.create(zipFile.path);
+      await encoder.addDirectory(projectDir, includeDirName: false);
+      encoder.close();
+      final params = SaveFileDialogParams(
+        sourceFilePath: zipFile.path,
+        fileName: '${state.quizTitle}.qmzip',
+      );
+      savedir = await FlutterFileDialog.saveFile(params: params);
+
       // print(savedir);
-    }
-    if (savedir != null) {
-      // print('$savedir.qmzip');
-      try {
-        // print(projectDir.path);
-        final zipFile = File(savedir);
-
-        var projectDir = await Directory(path.join(
-          appDir,
-          state.quizTitle,
-        )).create();
-
-        var encoder = ZipFileEncoder();
-        encoder.create(zipFile.path);
-        await encoder.addDirectory(projectDir, includeDirName: false);
-        encoder.close();
-      } catch (e) {
-        throw Exception(e);
-      }
     }
   }
 

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -28,8 +29,8 @@ class NavrailCubit extends Cubit<NavrailState> {
         answerSelected: const [],
         selectedIndex: 0,
         titles: d,
-        viewmode: RailViewMode.list,
-        expanded: true));
+        viewmode: Platform.isAndroid ? RailViewMode.grid : RailViewMode.list,
+        expanded: Platform.isAndroid ? false : true));
   }
 
   selectindex(int index) {

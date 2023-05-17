@@ -3,17 +3,26 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:photo_view/photo_view.dart';
 import 'package:vsc_quill_delta_to_html/vsc_quill_delta_to_html.dart';
 
-class HtmlParsequill {
-  Widget imageView(ExtensionContext p0, BuildContext context) => InkWell(
+class HtmlProvider {
+  HtmlProvider();
+  static Map<String, Style> style = {
+    "body": Style(padding: const EdgeInsets.all(0), margin: Margins.zero),
+    "p": Style(margin: Margins.zero),
+  };
+  static HtmlProvider get instance => HtmlProvider();
+  static Widget imageView(ExtensionContext p0, BuildContext context) => InkWell(
         onTap: () {
           showDialog(
             context: context,
             builder: (context) {
               return Dialog(
-                child: Image.file(
-                  File(p0.attributes["src"]!),
+                child: PhotoView(
+                  imageProvider: FileImage(
+                    File(p0.attributes["src"]!),
+                  ),
                 ),
               );
             },
@@ -24,7 +33,7 @@ class HtmlParsequill {
           height: 125,
         ),
       );
-  String htmlData(String jsonString) {
+  static String htmlData(String jsonString) {
     if (jsonString.isEmpty) return '';
     List json = jsonDecode(jsonString);
     List<Map<String, dynamic>> yo =

@@ -7,7 +7,7 @@ import 'package:flutter_quill/flutter_quill.dart' as q;
 import 'package:quizmaker/bloc/maker/maker_bloc.dart';
 import 'package:quizmaker/bloc/maker/maker_state.dart';
 import 'package:quizmaker/service/encrypt_service.dart';
-import 'package:quizmaker/service/htmlparser.dart';
+import 'package:quizmaker/service/htmlprovider.dart';
 
 class Preview extends StatefulWidget {
   final q.QuillController controller;
@@ -83,15 +83,8 @@ class _PreviewState extends State<Preview> {
                                           width: 2),
                                     ),
                                     child: Html(
-                                      style: {
-                                        "body": Style(
-                                            padding: const EdgeInsets.all(0),
-                                            margin: Margins.zero),
-                                        "p": Style(
-                                            // padding: EdgeInsets.zero,
-                                            margin: Margins.zero),
-                                      },
-                                      data: HtmlParsequill().htmlData(state
+                                      style: HtmlProvider.style,
+                                      data: HtmlProvider.htmlData(state
                                               .datas[state.qSelectedIndex]
                                               .textJson ??
                                           ''),
@@ -99,26 +92,8 @@ class _PreviewState extends State<Preview> {
                                         TagExtension(
                                           tagsToExtend: {'img'},
                                           builder: (p0) {
-                                            return InkWell(
-                                              onTap: () {
-                                                showDialog(
-                                                  context: context,
-                                                  builder: (context) {
-                                                    return Dialog(
-                                                      child: Image.file(
-                                                        File(p0.attributes[
-                                                            "src"]!),
-                                                        // height: 100,
-                                                      ),
-                                                    );
-                                                  },
-                                                );
-                                              },
-                                              child: Image.file(
-                                                File(p0.attributes["src"]!),
-                                                height: 100,
-                                              ),
-                                            );
+                                            return HtmlProvider.imageView(
+                                                p0, context);
                                           },
                                         )
                                       ],
@@ -240,21 +215,10 @@ class _PreviewState extends State<Preview> {
                                                                               4)),
                                                               Expanded(
                                                                   child: Html(
-                                                                style: {
-                                                                  "body": Style(
-                                                                      padding:
-                                                                          const EdgeInsets.all(
-                                                                              0),
-                                                                      margin: Margins
-                                                                          .zero),
-                                                                  "p": Style(
-                                                                      padding:
-                                                                          EdgeInsets
-                                                                              .zero,
-                                                                      margin: Margins
-                                                                          .zero),
-                                                                },
-                                                                data: HtmlParsequill().htmlData(state
+                                                                style:
+                                                                    HtmlProvider
+                                                                        .style,
+                                                                data: HtmlProvider.htmlData(state
                                                                         .datas[state
                                                                             .qSelectedIndex]
                                                                         .answers[
@@ -267,31 +231,9 @@ class _PreviewState extends State<Preview> {
                                                                       "img"
                                                                     },
                                                                     builder: (p0) =>
-                                                                        InkWell(
-                                                                      onTap:
-                                                                          () {
-                                                                        showDialog(
-                                                                          context:
-                                                                              context,
-                                                                          builder:
-                                                                              (context) {
-                                                                            return Dialog(
-                                                                              child: Image.file(
-                                                                                File(p0.attributes["src"]!),
-                                                                                // height: 100,
-                                                                              ),
-                                                                            );
-                                                                          },
-                                                                        );
-                                                                      },
-                                                                      child: Image
-                                                                          .file(
-                                                                        File(p0.attributes[
-                                                                            "src"]!),
-                                                                        height:
-                                                                            100,
-                                                                      ),
-                                                                    ),
+                                                                        HtmlProvider.imageView(
+                                                                            p0,
+                                                                            context),
                                                                   )
                                                                 ],
                                                               )),

@@ -25,6 +25,10 @@ class _NavRailState extends State<NavRail> {
       builder: (context, state) {
         if (state is MakerLoaded) {
           return NavigationRail(
+              minWidth: 55,
+              elevation: 2,
+
+              // minExtendedWidth: 100,
               onDestinationSelected: (value) {
                 if (value == state.datas.length) {
                   BlocProvider.of<MakerBloc>(context).add(AddQuestion());
@@ -50,7 +54,7 @@ class _NavRailState extends State<NavRail> {
                             Icons.album_outlined,
                             color: Color(state.datas[i].valdiColor()),
                           ),
-                          const Padding(padding: EdgeInsets.all(2)),
+                          const Padding(padding: EdgeInsets.all(1)),
                           Text('${i + 1}'),
                         ],
                       ),

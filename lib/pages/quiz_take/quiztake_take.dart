@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,7 +13,7 @@ import 'package:quizmaker/pages/quiz_take/cubit/navrail_cubit.dart';
 import 'package:quizmaker/pages/quiz_take/quiztake_navrail.dart';
 import 'package:path/path.dart' as p;
 import 'package:quizmaker/service/file_service.dart';
-import 'package:quizmaker/service/htmlparser.dart';
+import 'package:quizmaker/service/htmlprovider.dart';
 
 class Quiztake extends StatefulWidget {
   final String dir;
@@ -99,16 +100,8 @@ class _QuiztakeState extends State<Quiztake> {
                                             padding: EdgeInsets.all(4)),
                                         Expanded(
                                             child: Html(
-                                          style: {
-                                            "body": Style(
-                                                padding:
-                                                    const EdgeInsets.all(0),
-                                                margin: Margins.zero),
-                                            "p": Style(
-                                                padding: EdgeInsets.zero,
-                                                margin: Margins.zero),
-                                          },
-                                          data: HtmlParsequill().htmlData(state
+                                          style: HtmlProvider.style,
+                                          data: HtmlProvider.htmlData(state
                                                   .quizdata!
                                                   .answers[index]
                                                   .text ??
@@ -116,8 +109,9 @@ class _QuiztakeState extends State<Quiztake> {
                                           extensions: [
                                             TagExtension(
                                               tagsToExtend: {'img'},
-                                              builder: (p0) => HtmlParsequill()
-                                                  .imageView(p0, context),
+                                              builder: (p0) =>
+                                                  HtmlProvider.imageView(
+                                                      p0, context),
                                             )
                                           ],
                                         )),
@@ -200,9 +194,14 @@ class _QuiztakeState extends State<Quiztake> {
                 },
                 child: const Text('Export'))
           ],
-          title: Text(
-            p.basename(BlocProvider.of<TakerBloc>(context).state.path),
-            style: const TextStyle(color: Colors.black),
+          title: BlocBuilder<TakerBloc, TakerState>(
+            buildWhen: (previous, current) => previous.path != current.path,
+            builder: (context, state) {
+              return Text(
+                p.basename(BlocProvider.of<TakerBloc>(context).state.path),
+                // style: const TextStyle(color: Colors.black),
+              );
+            },
           ),
         ),
         body: Container(
@@ -219,62 +218,50 @@ class _QuiztakeState extends State<Quiztake> {
                   children: [
                     Flexible(
                       child: AspectRatio(
-                        aspectRatio: 9 / 16,
+                        aspectRatio: Platform.isWindows ? (9 / 16) : (9 / 21),
                         child: Card(
-                          child: Column(
-                            children: [
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12.0),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              children: [
+                                ///QuestionBox
+                                BlocBuilder<TakerBloc, TakerState>(
+                                  builder: (context, state) {
+                                    return InkWell(
+                                      // onTap: () {},
+                                      child: Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(4.0),
+                                          border: Border.all(
+                                              color: Theme.of(context)
+                                                  .primaryColor,
+                                              width: 2),
+                                        ),
+                                        child: Html(
+                                          style: HtmlProvider.style,
+                                          data: HtmlProvider.htmlData(
+                                              state.quizdata!.textJson ?? ''),
+                                          extensions: [
+                                            TagExtension(
+                                              tagsToExtend: {'img'},
+                                              builder: (p0) =>
+                                                  HtmlProvider.imageView(
+                                                      p0, context),
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                Expanded(
                                   child: SingleChildScrollView(
                                     child: Column(
                                       mainAxisAlignment:
                                           MainAxisAlignment.start,
                                       children: [
-                                        BlocBuilder<TakerBloc, TakerState>(
-                                          builder: (context, state) {
-                                            return InkWell(
-                                              onTap: () {},
-                                              child: Container(
-                                                padding:
-                                                    const EdgeInsets.all(8),
-                                                decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          4.0),
-                                                  border: Border.all(
-                                                      color: Theme.of(context)
-                                                          .primaryColor,
-                                                      width: 2),
-                                                ),
-                                                child: Html(
-                                                  style: {
-                                                    "body": Style(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .all(0),
-                                                        margin: Margins.zero),
-                                                    "p": Style(
-                                                        margin: Margins.zero),
-                                                  },
-                                                  data: HtmlParsequill()
-                                                      .htmlData(state.quizdata!
-                                                              .textJson ??
-                                                          ''),
-                                                  extensions: [
-                                                    TagExtension(
-                                                      tagsToExtend: {'img'},
-                                                      builder: (p0) =>
-                                                          HtmlParsequill()
-                                                              .imageView(
-                                                                  p0, context),
-                                                    )
-                                                  ],
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                        ),
                                         const Padding(
                                             padding: EdgeInsets.all(16)),
                                         answerWidget(),
@@ -284,8 +271,8 @@ class _QuiztakeState extends State<Quiztake> {
                                     ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),

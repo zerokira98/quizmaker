@@ -177,6 +177,44 @@ class _HomePageCreateState extends State<HomePageCreate> {
                       return ListView.builder(
                         itemBuilder: (context, i) {
                           return InkWell(
+                            onLongPress: () {
+                              showDialog<bool>(
+                                context: context,
+                                builder: (context) {
+                                  return AlertDialog(
+                                    title: Text('Alert'),
+                                    content: Text('Remove project?'),
+                                    actions: [
+                                      ElevatedButton(
+                                          onPressed: () {
+                                            Navigator.pop(context, true);
+                                          },
+                                          child: Text('Yes')),
+                                      ElevatedButton(
+                                          onPressed: () {
+                                            Navigator.pop(context, false);
+                                          },
+                                          child: Text('No')),
+                                    ],
+                                  );
+                                },
+                              ).then((value) {
+                                if (value != null) {
+                                  switch (value) {
+                                    case true:
+                                      FileService().removeMakerProject(
+                                          snapshot.data![i]["basename"]);
+                                      setState(() {
+                                        foldersProject = FileService()
+                                            .getListFoldersProject();
+                                      });
+                                      break;
+                                    case false:
+                                      break;
+                                  }
+                                }
+                              });
+                            },
                             onTap: () {
                               // BlocProvider.of<MakerBloc>(context).add(event)
                               Navigator.push(context, MaterialPageRoute(
@@ -218,23 +256,25 @@ class _HomePageCreateState extends State<HomePageCreate> {
                   },
                 ),
               ),
-              Container(
-                margin: EdgeInsets.symmetric(
-                    vertical: 8,
-                    horizontal: (MediaQuery.of(context).size.width / 6) + 8),
-                child: Row(
-                  children: [
-                    const Text('List of quiz project'),
-                    Expanded(child: Container()),
-                    ElevatedButton(
-                        onPressed: () async {
-                          var a = await FileService().getQuizMakerProjectDir();
-                          launchUrlString('file://$a');
-                        },
-                        child: const Text('Open Quiz Project Folder')),
-                  ],
+              if (Platform.isWindows)
+                Container(
+                  margin: EdgeInsets.symmetric(
+                      vertical: 8,
+                      horizontal: (MediaQuery.of(context).size.width / 6) + 8),
+                  child: Row(
+                    children: [
+                      const Text('List of quiz project'),
+                      Expanded(child: Container()),
+                      ElevatedButton(
+                          onPressed: () async {
+                            var a =
+                                await FileService().getQuizMakerProjectDir();
+                            launchUrlString('file://$a');
+                          },
+                          child: const Text('Open Quiz Project Folder')),
+                    ],
+                  ),
                 ),
-              ),
               const Padding(padding: EdgeInsets.all(8)),
               Center(
                 child: ElevatedButton(

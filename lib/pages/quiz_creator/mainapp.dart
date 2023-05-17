@@ -163,7 +163,7 @@ class _MainAppState extends State<MainApp> {
                 builder: (context, state) {
                   if (state is MakerLoaded) {
                     return Container(
-                      padding: const EdgeInsets.all(8.0),
+                      padding: const EdgeInsets.all(0.0),
                       child: Row(
                         mainAxisSize: MainAxisSize.max,
                         mainAxisAlignment: MainAxisAlignment.start,
